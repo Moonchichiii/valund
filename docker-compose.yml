@@ -1,0 +1,225 @@
+version: '3.8'
+
+services:
+  # Database Services
+  postgres:
+    image: postgres:16-alpine
+    container_name: valund_postgres
+    environment:
+      POSTGRES_DB: valund
+      POSTGRES_USER: valund_user
+      POSTGRES_PASSWORD: valund_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U valund_user -d valund"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - valund_network
+
+  pgbouncer:
+    image: pgbouncer/pgbouncer:latest
+    container_name: valund_pgbouncer
+    environment:
+      DATABASES_HOST: postgres
+      DATABASES_PORT: 5432
+      DATABASES_USER: valund_user
+      DATABASES_PASSWORD: valund_password
+      DATABASES_DBNAME: valund
+      POOL_MODE: transaction
+      SERVER_RESET_QUERY: DISCARD ALL
+      MAX_CLIENT_CONN: 25
+      DEFAULT_POOL_SIZE: 25
+      MIN_POOL_SIZE: 10
+      RESERVE_POOL_SIZE: 5
+      SERVER_LIFETIME: 3600
+      SERVER_IDLE_TIMEOUT: 600
+    ports:
+      - "6432:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - valund_network
+
+  # Cache and Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: valund_redis
+    command: redis-server --appendonly yes --requirepass redis_password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - valund_network
+
+  # Backend Services
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: valund_backend
+    environment:
+      - DEBUG=1
+      - DATABASE_URL=postgresql://valund_user:valund_password@pgbouncer:5432/valund
+      - REDIS_URL=redis://:redis_password@redis:6379/0
+      - CELERY_BROKER_URL=redis://:redis_password@redis:6379/1
+      - SECRET_KEY=your-secret-key-here
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,nginx
+      - STRIPE_PUBLISHABLE_KEY=pk_test_
+      - STRIPE_SECRET_KEY=sk_test_
+      - STRIPE_WEBHOOK_SECRET=whsec_
+      - SENTRY_DSN=
+    volumes:
+      - ./backend:/app
+      - media_volume:/app/media
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - valund_network
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn valund.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
+
+  # Celery Workers
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: valund_celery_worker
+    environment:
+      - DEBUG=1
+      - DATABASE_URL=postgresql://valund_user:valund_password@pgbouncer:5432/valund
+      - REDIS_URL=redis://:redis_password@redis:6379/0
+      - CELERY_BROKER_URL=redis://:redis_password@redis:6379/1
+      - SECRET_KEY=your-secret-key-here
+    volumes:
+      - ./backend:/app
+      - media_volume:/app/media
+    depends_on:
+      - backend
+      - redis
+    networks:
+      - valund_network
+    command: celery -A valund worker -l info
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: valund_celery_beat
+    environment:
+      - DEBUG=1
+      - DATABASE_URL=postgresql://valund_user:valund_password@pgbouncer:5432/valund
+      - REDIS_URL=redis://:redis_password@redis:6379/0
+      - CELERY_BROKER_URL=redis://:redis_password@redis:6379/1
+      - SECRET_KEY=your-secret-key-here
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - redis
+    networks:
+      - valund_network
+    command: celery -A valund beat -l info
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: valund_frontend
+    environment:
+      - VITE_API_URL=http://localhost/api
+      - VITE_STRIPE_PUBLISHABLE_KEY=pk_test_
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - valund_network
+    command: npm run dev -- --host 0.0.0.0
+
+  # Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: valund_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/static
+      - media_volume:/media
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - valund_network
+
+  # Monitoring Services
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: valund_prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - valund_network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: valund_grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - valund_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  valund_network:
+    driver: bridge
