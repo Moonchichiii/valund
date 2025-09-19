@@ -1,3 +1,3 @@
-from django.shortcuts import render
+"""Account related API views (placeholder)."""
 
-# Create your views here.
+# Views will be implemented later; keeping module minimal for lint cleanliness.

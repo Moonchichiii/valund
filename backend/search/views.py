@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+"""Search related API views (placeholder)."""
