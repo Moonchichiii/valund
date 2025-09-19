@@ -12,6 +12,7 @@ A complete monorepo for a competence marketplace platform built with Django 5 ba
 ## Features
 
 ### MVP Features
+
 - **Accounts & Roles**: User management with freelancer, client, and admin roles
 - **Competence Passport**: Document upload, review, and audit system
 - **Search & Discovery**: Skills, location, and availability search with indexing and caching
@@ -20,6 +21,7 @@ A complete monorepo for a competence marketplace platform built with Django 5 ba
 - **Ratings**: Comprehensive rating and review system
 
 ### Core Functionality
+
 - JWT-based authentication
 - Role-based permissions
 - File upload and management
@@ -31,6 +33,7 @@ A complete monorepo for a competence marketplace platform built with Django 5 ba
 ## Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Node.js 18+ (for local development)
 - Python 3.11+ (for local development)
@@ -38,6 +41,7 @@ A complete monorepo for a competence marketplace platform built with Django 5 ba
 ### Development Setup
 
 1. **Clone and start services**:
+
    ```bash
    git clone <repository-url>
    cd valund
@@ -45,11 +49,12 @@ A complete monorepo for a competence marketplace platform built with Django 5 ba
    ```
 
 2. **Backend setup**:
+
    ```bash
    cd backend
    cp .env.example .env
    # Edit .env with your configuration
-   
+
    # If running locally without Docker:
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -60,11 +65,12 @@ A complete monorepo for a competence marketplace platform built with Django 5 ba
    ```
 
 3. **Frontend setup**:
+
    ```bash
    cd frontend
    cp .env.example .env.local
    # Edit .env.local with your configuration
-   
+
    npm install
    npm run dev
    ```
@@ -87,17 +93,18 @@ The application includes the following services:
 ### API Documentation
 
 When running, API documentation is available at:
-- Swagger UI: http://localhost/api/schema/swagger-ui/
-- ReDoc: http://localhost/api/schema/redoc/
+
+- Swagger UI: <http://localhost/api/schema/swagger-ui/>
+- ReDoc: <http://localhost/api/schema/redoc/>
 
 ### Monitoring
 
-- Grafana dashboards: http://localhost:3001 (admin/admin)
-- Prometheus metrics: http://localhost:9090
+- Grafana dashboards: <http://localhost:3001> (admin/admin)
+- Prometheus metrics: <http://localhost:9090>
 
 ## Project Structure
 
-```
+```text
 valund/
 ├── backend/                 # Django backend
 │   ├── accounts/           # User management
@@ -126,17 +133,36 @@ valund/
 ### Backend Development
 
 1. **Create migrations**:
+
    ```bash
    python manage.py makemigrations
    python manage.py migrate
    ```
 
-2. **Run tests**:
+2. **Run tests (Pytest)**:
+
+   We use `pytest` with per-app coverage thresholds (>=92%).
+
    ```bash
-   python manage.py test
+   cd backend
+   # Install dependencies (ensure virtualenv active)
+   pip install -r requirements.txt
+   # Run full suite with coverage
+   pytest
+   # Open coverage summary (terminal already shows). For XML (CI):
+   pytest --cov-report=xml
    ```
 
+   To run a specific test file:
+
+   ```bash
+   pytest tests/test_payments.py::test_payment_platform_fee_calculated -q
+   ```
+
+   Coverage enforcement: `tests/test_coverage_thresholds.py` parses `coverage.xml` (generated when `--cov-report=xml` supplied) and fails if any app dips below 92% statement coverage.
+
 3. **Create superuser**:
+
    ```bash
    python manage.py createsuperuser
    ```
@@ -144,16 +170,19 @@ valund/
 ### Frontend Development
 
 1. **Start development server**:
+
    ```bash
    npm run dev
    ```
 
 2. **Build for production**:
+
    ```bash
    npm run build
    ```
 
 3. **Run tests**:
+
    ```bash
    npm run test
    ```
@@ -161,6 +190,7 @@ valund/
 ## Environment Variables
 
 ### Backend (.env)
+
 - `DEBUG`: Enable/disable debug mode
 - `SECRET_KEY`: Django secret key
 - `DATABASE_URL`: Database connection string
@@ -169,6 +199,7 @@ valund/
 - `SENTRY_DSN`: Sentry error tracking
 
 ### Frontend (.env.local)
+
 - `VITE_API_URL`: Backend API URL
 - `VITE_STRIPE_PUBLISHABLE_KEY`: Stripe publishable key
 
@@ -178,6 +209,7 @@ valund/
 
 1. **Update environment variables** for production
 2. **Build and deploy** with Docker Compose:
+
    ```bash
    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
    ```
