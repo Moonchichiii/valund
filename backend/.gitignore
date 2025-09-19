@@ -1,0 +1,140 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media
+/static
+
+# Environment variables
+.env
+.env.local
+.env.production
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# React/Vite
+dist/
+dist-ssr/
+*.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Logs
+logs/
+*.log
+
+# Coverage
+.nyc_output/
+coverage/
+*.lcov
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Temporary folders
+tmp/
+temp/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Redis
+dump.rdb
+
+# Backup files
+*.bak
+*.backup
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Monitoring
+prometheus/
+grafana/data/
+
+# SSL certificates
+*.pem
+*.crt
+*.key

@@ -1,0 +1,11 @@
+[run]
+branch = True
+source = accounts,bookings,competence,payments,ratings,search
+omit =
+    */migrations/*
+    */tests/*
+
+[report]
+show_missing = True
+precision = 2
+fail_under = 80
