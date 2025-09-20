@@ -1,9 +1,4 @@
-/* src/index.css - Performance-optimized styles */
-
-/* Critical CSS - loaded immediately */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* CSS Custom Properties - Nordic Design System */
 :root {

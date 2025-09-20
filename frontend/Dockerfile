@@ -1,22 +1,23 @@
-FROM node:18-alpine
+# syntax=docker/dockerfile:1.7
+FROM node:22-alpine
 
-# Set working directory
+ENV PNPM_HOME=/pnpm
+ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Enable pnpm and pin version
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 
-# Install dependencies
-RUN npm ci --only=production
+# Install deps
+COPY package.json pnpm-lock.yaml* ./
+RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Copy project files
+# Copy source and build
 COPY . .
+RUN pnpm run build
 
-# Build the application
-RUN npm run build
+# Non-root user
+USER node
 
-# Expose port
-EXPOSE 3000
-
-# Command to run the application
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0"]
+EXPOSE 5173
+CMD ["pnpm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "5173"]

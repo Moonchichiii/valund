@@ -1,14 +1,9 @@
-import { Suspense } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import React, { Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from '@/auth/AuthContext';
-import { ErrorBoundary } from '@/auth/ErrorBoundary';
-import { AppRouter } from '@/app/router/AppRouter';
-import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
+import './App.css';
 
-// React Query client with optimized defaults
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -31,45 +26,44 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
+function App(): React.JSX.Element {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <div className="min-h-screen bg-nordic-cream font-inter antialiased">
-              <Suspense fallback={<LoadingSpinner />}>
-                <AppRouter />
-              </Suspense>
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen bg-nordic-cream font-inter antialiased">
+        <Suspense fallback={<div className="p-8">Loading...</div>}>
+          <div className="p-8">
+            <h1 className="text-2xl font-bold text-text-primary">
+              Valund Auth System
+            </h1>
+            <p className="text-text-secondary mt-2">
+              TanStack Router + Auth System Ready
+            </p>
+          </div>
+        </Suspense>
 
-              {/* Toast notifications */}
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  className: 'nordic-toast',
-                  style: {
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--border-light)',
-                    borderRadius: '8px',
-                    fontSize: '0.9rem',
-                  },
-                }}
-              />
-            </div>
-          </AuthProvider>
-        </BrowserRouter>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            className: 'nordic-toast',
+            style: {
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-light)',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+            },
+          }}
+        />
+      </div>
 
-        {/* React Query Devtools - only in development */}
-        {import.meta.env.DEV && (
-          <ReactQueryDevtools
-            initialIsOpen={false}
-            position="bottom-right"
-          />
-        )}
-      </QueryClientProvider>
-    </ErrorBoundary>
+      {import.meta.env.DEV && (
+        <ReactQueryDevtools
+          initialIsOpen={false}
+          position="bottom-right"
+        />
+      )}
+    </QueryClientProvider>
   );
 }
 
