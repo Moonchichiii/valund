@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -13,6 +14,29 @@ from .services import (
     link_or_create_user_from_oauth,
 )
 from .utils import issue_jwt_for_user
+
+
+def set_auth_cookies(response: Response, tokens: dict) -> Response:
+    """Set HttpOnly refresh cookie; access token stays in body/header for SPA.
+    In production, ensure CSRF strategy is in place if using cookies for auth.
+    """
+    refresh = tokens.get("refresh")
+    if refresh:
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh,
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite="Lax",
+            max_age=14 * 24 * 60 * 60,
+            path="/",
+        )
+    return response
+
+
+def clear_auth_cookies(response: Response) -> Response:
+    response.delete_cookie("refresh_token", path="/")
+    return response
 
 ALLOWED_OAUTH_PROVIDERS = {"google", "github"}
 
@@ -33,7 +57,9 @@ class OAuthExchangeView(APIView):
             )
         user = link_or_create_user_from_oauth(provider, code)
         tokens = issue_jwt_for_user(user)
-        return Response({"tokens": tokens, "user_id": user.id})
+        user_payload = {"id": user.id, "email": user.email, "username": user.username}
+        resp = Response({"tokens": tokens, "user": user_payload})
+        return set_auth_cookies(resp, tokens)
 
 
 class BankIDStartView(APIView):
@@ -70,9 +96,11 @@ class BankIDStatusView(APIView):
                 )
                 ensure_user_identity(user, personal_number)
                 tokens = issue_jwt_for_user(user)
-                return Response(
-                    {"status": session.status, "tokens": tokens, "user_id": user.id}
+                user_payload = {"id": user.id, "email": user.email, "username": user.username}
+                resp = Response(
+                    {"status": session.status, "tokens": tokens, "user": user_payload}
                 )
+                return set_auth_cookies(resp, tokens)
         return Response({"status": session.status})
 
 

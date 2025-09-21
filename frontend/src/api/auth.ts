@@ -1,76 +1,150 @@
-import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
+import { apiClient, rootClient, handleApiError, setAccessToken } from './client';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+// Types for auth domain
+export type User = {
+  id: number;
+  email?: string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  [key: string]: unknown;
+};
 
-// Create the main API client
-export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true, // Important for HTTP-only cookies
-});
+export type Tokens = {
+  access: string;
+  refresh?: string;
+};
 
-// Token management for localStorage fallback (if needed)
-let accessToken: string | null = null;
+export type LoginCredentials = {
+  username: string;
+  password: string;
+};
 
-export const setAccessToken = (token: string | null): void => {
-  accessToken = token;
-  if (token) {
-    localStorage.setItem('authToken', token);
+export type RegisterData = {
+  email: string;
+  password: string;
+  username?: string;
+};
+
+export type OAuthProvider = 'google' | 'github';
+
+export type OAuthExchangeData = {
+  provider: OAuthProvider;
+  code: string;
+};
+
+export type BankIDStartData = {
+  personal_number?: string;
+};
+
+// Local storage helpers for user persistence (until backend exposes /me)
+const USER_STORAGE_KEY = 'authUser';
+
+export function setAuthUser(user: User | null) {
+  if (user) {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
   } else {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem(USER_STORAGE_KEY);
   }
-};
+}
 
-export const getAccessToken = (): string | null => {
-  if (accessToken) return accessToken;
-  return localStorage.getItem('authToken');
-};
+export function getAuthUser(): User | null {
+  const raw = localStorage.getItem(USER_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as User;
+  } catch {
+    return null;
+  }
+}
 
-// Request interceptor to add auth token (fallback for non-cookie auth)
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = getAccessToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+// Concrete API calls
+async function login(data: LoginCredentials): Promise<{ tokens: Tokens; user?: User }> {
+  try {
+  // Django SimpleJWT lives under /api/auth/login/
+  const res = await apiClient.post('/auth/login/', data);
+    const tokens = res.data as Tokens | { access: string; refresh?: string };
+    if ('access' in tokens) {
+      setAccessToken(tokens.access);
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+    // No user info from this endpoint by default
+    return { tokens: tokens as Tokens };
+  } catch (err) {
+    throw new Error(handleApiError(err));
+  }
+}
 
-// Response interceptor for error handling and token refresh
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+async function register(_: RegisterData): Promise<{ tokens?: Tokens; user?: User }> {
+  // Not implemented server-side yet
+  throw new Error('Registration is not supported yet');
+}
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+async function logout(): Promise<void> {
+  // Server logout not implemented; clear local state
+  setAccessToken(null);
+  setAuthUser(null);
+}
 
-      // Clear any stored tokens
-      setAccessToken(null);
+async function oauthExchange(payload: OAuthExchangeData): Promise<{ tokens: Tokens; user: User }> {
+  try {
+  // Identity OAuth endpoints live under root /auth
+  const res = await rootClient.post('/auth/oauth/exchange/', payload);
+    const { tokens, user } = res.data as { tokens: Tokens; user: User };
+    if (tokens?.access) setAccessToken(tokens.access);
+    setAuthUser(user);
+    return { tokens, user };
+  } catch (err) {
+    throw new Error(handleApiError(err));
+  }
+}
 
-      // Redirect to login (you can customize this)
-      window.location.href = '/login';
+async function bankidStart(data?: BankIDStartData): Promise<{ order_ref: string; auto_start_token?: string }> {
+  try {
+  const res = await rootClient.post('/auth/bankid/start/', data ?? {});
+    return res.data as { order_ref: string; auto_start_token?: string };
+  } catch (err) {
+    throw new Error(handleApiError(err));
+  }
+}
+
+async function bankidStatus(orderRef: string): Promise<
+  | { status: 'pending' }
+  | { status: 'complete'; tokens: Tokens; user: User }
+  | { status: 'failed' | 'cancelled' }
+> {
+  try {
+  const res = await rootClient.get(`/auth/bankid/status/${encodeURIComponent(orderRef)}/`);
+    const data = res.data as any;
+    if (data?.status === 'complete' && data.tokens?.access && data.user) {
+      setAccessToken(data.tokens.access);
+      setAuthUser(data.user);
     }
+    return data;
+  } catch (err) {
+    throw new Error(handleApiError(err));
+  }
+}
 
-    return Promise.reject(error);
+async function bankidCancel(orderRef: string): Promise<void> {
+  try {
+  await rootClient.post(`/auth/bankid/cancel/${encodeURIComponent(orderRef)}/`);
+  } catch (err) {
+    throw new Error(handleApiError(err));
   }
-);
+}
 
-// Helper for handling API errors consistently
-export const handleApiError = (error: any): string => {
-  if (error.response?.data?.detail) {
-    return error.response.data.detail;
-  }
-  if (error.response?.data?.message) {
-    return error.response.data.message;
-  }
-  if (error.message) {
-    return error.message;
-  }
-  return 'An unexpected error occurred';
+async function getCurrentUser(): Promise<User | null> {
+  // Until backend exposes /me, rely on cached user in localStorage
+  return getAuthUser();
+}
+
+export const authApi = {
+  login,
+  register,
+  logout,
+  oauthExchange,
+  bankidStart,
+  bankidStatus,
+  bankidCancel,
+  getCurrentUser,
 };

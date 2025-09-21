@@ -56,15 +56,16 @@ function App(): React.JSX.Element {
           }}
         />
       </div>
-
       {import.meta.env.DEV && (
-        <ReactQueryDevtools
-          initialIsOpen={false}
-          position="bottom-right"
-        />
-      )}
+  <ReactQueryDevtools
+    initialIsOpen={false}
+    position="bottom"
+    buttonPosition="bottom-right"
+  />
+)}
     </QueryClientProvider>
   );
+
 }
 
 export default App;

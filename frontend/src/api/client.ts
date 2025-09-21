@@ -1,15 +1,28 @@
-import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+export const API_ORIGIN = (() => {
+  try {
+    const u = new URL(API_BASE_URL);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return 'http://localhost:8000';
+  }
+})();
 
-// Create the main API client
+// Create Axios clients
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true, // Important for HTTP-only cookies
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
+});
+
+export const rootClient = axios.create({
+  baseURL: API_ORIGIN,
+  timeout: 10000,
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
 
 // Token management for localStorage fallback (if needed)
@@ -29,37 +42,37 @@ export const getAccessToken = (): string | null => {
   return localStorage.getItem('authToken');
 };
 
-// Request interceptor to add auth token (fallback for non-cookie auth)
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = getAccessToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+// Attach shared interceptors to a client
+function attachInterceptors(client: typeof apiClient) {
+  client.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+      const token = getAccessToken();
+      if (token && config.headers) {
+        (config.headers as any).Authorization = `Bearer ${token}`;
+      }
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
+
+  client.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config as any;
+
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        setAccessToken(null);
+        window.location.href = '/login';
+      }
+
+      return Promise.reject(error);
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  );
+}
 
-// Response interceptor for error handling and token refresh
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      // Clear any stored tokens
-      setAccessToken(null);
-
-      // Redirect to login (you can customize this)
-      window.location.href = '/login';
-    }
-
-    return Promise.reject(error);
-  }
-);
+attachInterceptors(apiClient);
+attachInterceptors(rootClient);
 
 // Helper for handling API errors consistently
 export const handleApiError = (error: any): string => {
