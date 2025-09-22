@@ -1,18 +1,25 @@
-﻿import { lazy, Suspense } from 'react';
-import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router';
-import { Layout } from '@/app/layout/Layout';
-import { DashboardLayout } from '@/app/layout/DashboardLayout';
+﻿import type React from 'react';
+import { lazy, Suspense } from 'react';
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  RouterProvider
+} from '@tanstack/react-router';
+import { Layout } from '@/app/layouts/Layout';
+import { DashboardLayout } from '@/app/layouts/DashboardLayout';
 import { Home } from '@/app/pages/Home';
 
 // Lazy load non-critical pages
-const About = lazy(() => import('@/app/pages/About'));
-const FindTalent = lazy(() => import('@/app/pages/FindTalent'));
-const Professionals = lazy(() => import('@/app/pages/Professionals'));
-const Contact = lazy(() => import('@/app/pages/Contact'));
-const Dashboard = lazy(() => import('@/app/pages/Dashboard'));
+const About = lazy(() => import('@/app/pages/About').then(module => ({ default: module.About })));
+const FindTalent = lazy(() => import('@/app/pages/FindTalent').then(module => ({ default: module.FindTalent })));
+const Professionals = lazy(() => import('@/app/pages/Professionals').then(module => ({ default: module.Professionals })));
+const Contact = lazy(() => import('@/app/pages/Contact').then(module => ({ default: module.Contact })));
+const Dashboard = lazy(() => import('@/app/outlet/Dashboard/Dashboard').then(module => ({ default: module.Dashboard })));
 
 // Loading fallback component
-const LoadingSpinner = (): JSX.Element => (
+const LoadingSpinner = (): React.ReactElement => (
   <div className="flex items-center justify-center min-h-[200px]">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-blue" />
     <span className="ml-2 text-text-secondary">Loading...</span>
@@ -20,21 +27,21 @@ const LoadingSpinner = (): JSX.Element => (
 );
 
 // Suspense wrapper for lazy routes
-const SuspenseWrapper = ({ children }: { children: React.ReactNode }): JSX.Element => (
+const SuspenseWrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
   <Suspense fallback={<LoadingSpinner />}>
     {children}
   </Suspense>
 );
 
-// Root route
+// Root route - only create this once
 const rootRoute = createRootRoute({
   component: () => <Outlet />
 });
 
-// Layout wrapper route
-const layoutRoute = createRoute({
+// Main layout route (marketing pages)
+const mainLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  id: 'main-layout',
   component: () => (
     <Layout>
       <Outlet />
@@ -42,15 +49,15 @@ const layoutRoute = createRoute({
   )
 });
 
-// Marketing pages - Home loads immediately, others are lazy
-const homeRoute = createRoute({
-  getParentRoute: () => layoutRoute,
+// Marketing pages
+const indexRoute = createRoute({
+  getParentRoute: () => mainLayoutRoute,
   path: '/',
   component: Home
 });
 
 const aboutRoute = createRoute({
-  getParentRoute: () => layoutRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/about',
   component: () => (
     <SuspenseWrapper>
@@ -60,7 +67,7 @@ const aboutRoute = createRoute({
 });
 
 const findTalentRoute = createRoute({
-  getParentRoute: () => layoutRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/find-talent',
   component: () => (
     <SuspenseWrapper>
@@ -70,7 +77,7 @@ const findTalentRoute = createRoute({
 });
 
 const professionalsRoute = createRoute({
-  getParentRoute: () => layoutRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/professionals',
   component: () => (
     <SuspenseWrapper>
@@ -80,7 +87,7 @@ const professionalsRoute = createRoute({
 });
 
 const contactRoute = createRoute({
-  getParentRoute: () => layoutRoute,
+  getParentRoute: () => mainLayoutRoute,
   path: '/contact',
   component: () => (
     <SuspenseWrapper>
@@ -100,8 +107,8 @@ const dashboardLayoutRoute = createRoute({
   )
 });
 
-// Dashboard page - lazy loaded since it's behind authentication
-const dashboardRoute = createRoute({
+// Dashboard index page
+const dashboardIndexRoute = createRoute({
   getParentRoute: () => dashboardLayoutRoute,
   path: '/',
   component: () => (
@@ -111,35 +118,35 @@ const dashboardRoute = createRoute({
   )
 });
 
-// Route tree
+// Build route tree
 const routeTree = rootRoute.addChildren([
-  layoutRoute.addChildren([
-    homeRoute,
+  mainLayoutRoute.addChildren([
+    indexRoute,
     aboutRoute,
     findTalentRoute,
     professionalsRoute,
     contactRoute
   ]),
   dashboardLayoutRoute.addChildren([
-    dashboardRoute
+    dashboardIndexRoute
   ])
 ]);
 
-// Create router
+// Create router instance
 const router = createRouter({
   routeTree,
-  defaultPreload: 'intent', // Preload on hover/focus
+  defaultPreload: 'intent',
   defaultPreloadStaleTime: 0
 });
 
-// Type registration
+// Type registration for TypeScript
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
   }
 }
 
-function App(): JSX.Element {
+function App(): React.ReactElement {
   return <RouterProvider router={router} />;
 }
 

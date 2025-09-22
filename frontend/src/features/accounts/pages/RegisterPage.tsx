@@ -1,5 +1,4 @@
-﻿import type React from 'react';
-import { useState, useMemo } from 'react';
+﻿import React, { useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
@@ -86,13 +85,13 @@ export const RegisterPage = (): React.JSX.Element => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof FormData, value: string | boolean): void => {
+  const handleInputChange = useCallback((field: keyof FormData, value: string | boolean): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
-  };
+  }, [errors]);
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -108,48 +107,48 @@ export const RegisterPage = (): React.JSX.Element => {
       });
 
       toast.success('Welcome to Valunds! Your account has been created.');
-      navigate({ to: '/dashboard' });
+      void navigate({ to: '/dashboard' });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
       toast.error(errorMessage);
     }
   };
 
-  const togglePasswordVisibility = (): void => {
+  const togglePasswordVisibility = useCallback((): void => {
     setShowPassword(!showPassword);
-  };
+  }, [showPassword]);
 
-  const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleFirstNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
     handleInputChange('firstName', e.target.value);
-  };
+  }, [handleInputChange]);
 
-  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleLastNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
     handleInputChange('lastName', e.target.value);
-  };
+  }, [handleInputChange]);
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
     handleInputChange('email', e.target.value);
-  };
+  }, [handleInputChange]);
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
     handleInputChange('password', e.target.value);
-  };
+  }, [handleInputChange]);
 
-  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleConfirmPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
     handleInputChange('confirmPassword', e.target.value);
-  };
+  }, [handleInputChange]);
 
-  const handleTermsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleTermsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
     handleInputChange('acceptTerms', e.target.checked);
-  };
+  }, [handleInputChange]);
 
-  const selectProfessional = (): void => {
+  const selectProfessional = useCallback((): void => {
     handleInputChange('userType', 'professional');
-  };
+  }, [handleInputChange]);
 
-  const selectClient = (): void => {
+  const selectClient = useCallback((): void => {
     handleInputChange('userType', 'client');
-  };
+  }, [handleInputChange]);
 
   const passwordStrength = useMemo(() => {
     const { password } = formData;
@@ -241,7 +240,7 @@ export const RegisterPage = (): React.JSX.Element => {
 
         {/* Registration Form */}
         <Card className="bg-nordic-white">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-6">
 
             <div className="grid grid-cols-2 gap-4">
               <Input
