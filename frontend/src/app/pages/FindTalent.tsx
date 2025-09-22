@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, MapPin, Star, CheckCircle, Clock } from 'lucide-react';
+import { CheckCircle, Clock, Filter, MapPin, Search, Star } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card, CardContent, CardFooter } from '@/shared/components/ui/Card';
@@ -110,7 +110,7 @@ export const FindTalent = () => {
                 placeholder="Search by name, skill, or expertise..."
                 className="w-full pl-12 pr-4 py-4 border border-border-medium rounded-nordic-lg focus:outline-none focus:border-accent-primary transition-colors bg-nordic-cream"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); }}
               />
             </div>
 
@@ -120,7 +120,7 @@ export const FindTalent = () => {
               <select
                 className="w-full pl-12 pr-4 py-4 border border-border-medium rounded-nordic-lg focus:outline-none focus:border-accent-primary appearance-none bg-nordic-cream"
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => { setSelectedCategory(e.target.value); }}
               >
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -194,7 +194,7 @@ export const FindTalent = () => {
                 {/* Status and Actions */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${pro.status === 'available' ? 'bg-accent-green' : 'bg-accent-warm'}`}></div>
+                    <div className={`w-2 h-2 rounded-full ${pro.status === 'available' ? 'bg-accent-green' : 'bg-accent-warm'}`} />
                     <span className="text-sm text-text-secondary">
                       {pro.status === 'available' ? 'Available now' : 'Available March 2025'}
                     </span>

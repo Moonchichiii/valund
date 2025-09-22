@@ -60,7 +60,7 @@ export const Header = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => logout.mutate()}
+                  onClick={() => { logout.mutate(); }}
                   data-testid="logout-btn"
                 >
                   Sign out
@@ -87,7 +87,7 @@ export const Header = () => {
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => { setIsMenuOpen(!isMenuOpen); }}
               className="text-text-primary p-2 rounded-nordic hover:bg-nordic-warm transition-colors"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,7 +115,7 @@ export const Header = () => {
                       ? 'text-text-primary bg-nordic-warm'
                       : 'text-text-secondary hover:text-text-primary hover:bg-nordic-warm'
                   }`}
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => { setIsMenuOpen(false); }}
                 >
                   {item.name}
                 </Link>
@@ -128,7 +128,7 @@ export const Header = () => {
                     <Link
                       to="/app/dashboard"
                       className="block bg-accent-primary text-white px-4 py-3 rounded-nordic-xl text-sm font-medium text-center"
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={() => { setIsMenuOpen(false); }}
                     >
                       Dashboard
                     </Link>
@@ -149,14 +149,14 @@ export const Header = () => {
                     <Link
                       to="/login"
                       className="block text-center px-4 py-3 text-sm font-medium text-text-secondary hover:text-text-primary"
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={() => { setIsMenuOpen(false); }}
                     >
                       Sign In
                     </Link>
                     <Link
                       to="/register"
                       className="block bg-accent-primary text-white px-4 py-3 rounded-nordic-xl text-sm font-medium text-center"
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={() => { setIsMenuOpen(false); }}
                     >
                       Get Started
                     </Link>

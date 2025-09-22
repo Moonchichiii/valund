@@ -7,7 +7,7 @@ export const RegisterForm: React.FC = () => {
   const register = useRegister()
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '', confirm: '' })
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => { setForm((f) => ({ ...f, [e.target.name]: e.target.value })); }
   const canSubmit = form.email && form.password && form.first_name && form.last_name && form.password === form.confirm
 
   const onSubmit = (e: React.FormEvent) => {

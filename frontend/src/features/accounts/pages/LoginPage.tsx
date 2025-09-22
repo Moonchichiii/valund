@@ -5,7 +5,7 @@ import { useLogin } from '@/shared/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export const LoginPage: React.FC = () => {
@@ -86,7 +86,7 @@ export const LoginPage: React.FC = () => {
               label="Email address"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); }}
               placeholder="your@email.com"
               error={errors.email}
               required
@@ -98,7 +98,7 @@ export const LoginPage: React.FC = () => {
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); }}
                 placeholder="Enter your password"
                 error={errors.password}
                 required
@@ -106,7 +106,7 @@ export const LoginPage: React.FC = () => {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => { setShowPassword(!showPassword); }}
                 className="absolute right-3 top-[2.75rem] text-text-muted hover:text-text-secondary transition-colors"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >

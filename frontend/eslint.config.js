@@ -16,14 +16,12 @@ export default tseslint.config([
       js.configs.recommended,
       ...tseslint.configs.strictTypeChecked,
       ...tseslint.configs.stylisticTypeChecked,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
     ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.app.json',
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -72,7 +70,8 @@ export default tseslint.config([
       'react/self-closing-comp': 'error',
       'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
 
-      // React Hooks strict rules (already included from extends)
+      // React Hooks strict rules
+      'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
 
       // Accessibility rules (strict)
@@ -137,7 +136,7 @@ export default tseslint.config([
       'no-implied-eval': 'error',
       'no-script-url': 'error',
 
-      // React Refresh (already configured in extends)
+      // React Refresh
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true }

@@ -1,13 +1,13 @@
 import React from "react";
 import clsx from "clsx";
 
-export type LoadSpinnerProps = {
+export interface LoadSpinnerProps {
   label?: string;
   tone?: "primary" | "blue" | "green" | "warm" | "mono";
   sizeRem?: number;
   className?: string;
   fullscreen?: boolean;
-};
+}
 
 const toneVarMap: Record<NonNullable<LoadSpinnerProps["tone"]>, string> = {
   primary: "--color-accent-primary",

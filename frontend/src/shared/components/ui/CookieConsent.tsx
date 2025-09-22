@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Settings, Shield, BarChart3 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BarChart3, Settings, Shield, X } from 'lucide-react';
 import { Button } from './Button';
 import { Card } from './Card';
 import { cn } from '@/shared/utils/cn';
@@ -81,8 +81,8 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
     const hasConsent = localStorage.getItem('valunds-cookie-consent');
     if (!hasConsent) {
       // Delay to ensure page has loaded
-      const timer = setTimeout(() => setIsVisible(true), 1000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => { setIsVisible(true); }, 1000);
+      return () => { clearTimeout(timer); };
     }
   }, []);
 
@@ -179,7 +179,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                   We use cookies to enhance your browsing experience, provide personalized content, and analyze our traffic.
                   By clicking "Accept All", you consent to our use of cookies.{' '}
                   <button
-                    onClick={() => setShowDetails(!showDetails)}
+                    onClick={() => { setShowDetails(!showDetails); }}
                     className="text-accent-blue hover:text-accent-primary underline font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded"
                     aria-expanded={showDetails}
                     aria-controls="cookie-details"
@@ -211,7 +211,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setShowDetails(!showDetails)}
+                onClick={() => { setShowDetails(!showDetails); }}
                 className="border-border-medium"
                 aria-expanded={showDetails}
                 aria-controls="cookie-details"
@@ -279,7 +279,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                       id="analytics-cookies"
                       type="checkbox"
                       checked={preferences.analytics}
-                      onChange={(e) => handlePreferenceChange('analytics', e.target.checked)}
+                      onChange={(e) => { handlePreferenceChange('analytics', e.target.checked); }}
                       className="rounded border-border-medium focus:ring-2 focus:ring-accent-blue focus:ring-offset-2"
                       aria-describedby="analytics-description"
                     />
@@ -305,7 +305,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                       id="marketing-cookies"
                       type="checkbox"
                       checked={preferences.marketing}
-                      onChange={(e) => handlePreferenceChange('marketing', e.target.checked)}
+                      onChange={(e) => { handlePreferenceChange('marketing', e.target.checked); }}
                       className="rounded border-border-medium focus:ring-2 focus:ring-accent-blue focus:ring-offset-2"
                       aria-describedby="marketing-description"
                     />
@@ -331,7 +331,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                       id="functional-cookies"
                       type="checkbox"
                       checked={preferences.functional}
-                      onChange={(e) => handlePreferenceChange('functional', e.target.checked)}
+                      onChange={(e) => { handlePreferenceChange('functional', e.target.checked); }}
                       className="rounded border-border-medium focus:ring-2 focus:ring-accent-blue focus:ring-offset-2"
                       aria-describedby="functional-description"
                     />
@@ -347,7 +347,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => setShowDetails(false)}
+                  onClick={() => { setShowDetails(false); }}
                   className="order-2 sm:order-1"
                 >
                   Close Settings

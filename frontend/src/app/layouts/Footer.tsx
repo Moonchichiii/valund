@@ -1,8 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Github, Linkedin, Twitter } from 'lucide-react';
 
-export const Footer = () => {
-  return (
+export const Footer = () => (
     <footer className="bg-nordic-white border-t border-border-light">
       <div className="max-w-6xl mx-auto px-6 lg:px-12 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -124,7 +123,7 @@ export const Footer = () => {
               © 2024 Valunds. All rights reserved. Made with ❤️ in the Nordics.
             </p>
             <div className="flex items-center space-x-1 text-sm text-text-secondary">
-              <span className="w-2 h-2 bg-accent-green rounded-full"></span>
+              <span className="w-2 h-2 bg-accent-green rounded-full" />
               <span>WCAG AA Compliant</span>
             </div>
           </div>
@@ -132,4 +131,3 @@ export const Footer = () => {
       </div>
     </footer>
   );
-};

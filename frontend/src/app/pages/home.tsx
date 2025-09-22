@@ -77,7 +77,7 @@ export const Home = () => {
                   <span className="text-xs font-medium uppercase tracking-wider text-text-muted bg-nordic-warm px-3 py-1 rounded-full">
                     {pro.category}
                   </span>
-                  <div className={`w-3 h-3 rounded-full ${pro.accent}`}></div>
+                  <div className={`w-3 h-3 rounded-full ${pro.accent}`} />
                 </div>
 
                 <h3 className="text-2xl font-semibold text-text-primary mb-2 tracking-tight">{pro.name}</h3>
@@ -89,7 +89,7 @@ export const Home = () => {
 
                 <div className="flex flex-wrap items-center gap-6 mb-8">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${pro.status === 'available' ? 'bg-accent-green' : 'bg-accent-warm'}`}></div>
+                    <div className={`w-2 h-2 rounded-full ${pro.status === 'available' ? 'bg-accent-green' : 'bg-accent-warm'}`} />
                     <span className="text-sm text-text-secondary">
                       {pro.status === 'available' ? 'Available' : 'Next available March 2025'}
                     </span>

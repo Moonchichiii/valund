@@ -1,6 +1,6 @@
 // src/app/pages/Professionals.tsx
 import { Link } from '@tanstack/react-router';
-import { CheckCircle, Users, Clock, TrendingUp, Shield, Heart } from 'lucide-react';
+import { CheckCircle, Clock, Heart, Shield, TrendingUp, Users } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Card, CardContent } from '@/shared/components/ui/Card';
 
@@ -132,7 +132,7 @@ export const Professionals = () => {
                 <h3 className="text-xl font-semibold text-text-primary mb-4">{step.title}</h3>
                 <p className="text-text-secondary leading-relaxed">{step.description}</p>
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-border-medium"></div>
+                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-border-medium" />
                 )}
               </Card>
             ))}

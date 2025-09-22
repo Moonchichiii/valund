@@ -5,7 +5,7 @@ import { useRegister } from '@/shared/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface FormData {
@@ -168,7 +168,7 @@ export const RegisterPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => handleInputChange('userType', 'professional')}
+                onClick={() => { handleInputChange('userType', 'professional'); }}
                 className={`p-4 border-2 rounded-nordic-lg text-center transition-all ${
                   formData.userType === 'professional'
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
@@ -180,7 +180,7 @@ export const RegisterPage: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => handleInputChange('userType', 'client')}
+                onClick={() => { handleInputChange('userType', 'client'); }}
                 className={`p-4 border-2 rounded-nordic-lg text-center transition-all ${
                   formData.userType === 'client'
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
@@ -202,7 +202,7 @@ export const RegisterPage: React.FC = () => {
               <Input
                 label="First name"
                 value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                onChange={(e) => { handleInputChange('firstName', e.target.value); }}
                 placeholder="Erik"
                 error={errors.firstName}
                 required
@@ -211,7 +211,7 @@ export const RegisterPage: React.FC = () => {
               <Input
                 label="Last name"
                 value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                onChange={(e) => { handleInputChange('lastName', e.target.value); }}
                 placeholder="Andersson"
                 error={errors.lastName}
                 required
@@ -223,7 +223,7 @@ export const RegisterPage: React.FC = () => {
               label="Email address"
               type="email"
               value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
+              onChange={(e) => { handleInputChange('email', e.target.value); }}
               placeholder="erik@company.com"
               error={errors.email}
               required
@@ -236,7 +236,7 @@ export const RegisterPage: React.FC = () => {
                   label="Password"
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  onChange={(e) => { handleInputChange('password', e.target.value); }}
                   placeholder="Create a strong password"
                   error={errors.password}
                   required
@@ -244,7 +244,7 @@ export const RegisterPage: React.FC = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => { setShowPassword(!showPassword); }}
                   className="absolute right-3 top-[2.75rem] text-text-muted hover:text-text-secondary transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -276,7 +276,7 @@ export const RegisterPage: React.FC = () => {
               label="Confirm password"
               type="password"
               value={formData.confirmPassword}
-              onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+              onChange={(e) => { handleInputChange('confirmPassword', e.target.value); }}
               placeholder="Confirm your password"
               error={errors.confirmPassword}
               required
@@ -291,7 +291,7 @@ export const RegisterPage: React.FC = () => {
                     name="accept-terms"
                     type="checkbox"
                     checked={formData.acceptTerms}
-                    onChange={(e) => handleInputChange('acceptTerms', e.target.checked)}
+                    onChange={(e) => { handleInputChange('acceptTerms', e.target.checked); }}
                     className="h-4 w-4 text-accent-blue focus:ring-accent-blue border-border-medium rounded"
                   />
                 </div>

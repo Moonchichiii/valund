@@ -1,5 +1,5 @@
 // src/app/pages/About.tsx
-import { Award, Globe, Users, Heart, Shield, Lightbulb } from 'lucide-react';
+import { Award, Globe, Heart, Lightbulb, Shield, Users } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Card, CardContent } from '@/shared/components/ui/Card';
 import { Link } from '@tanstack/react-router';

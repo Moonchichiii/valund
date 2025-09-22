@@ -1,11 +1,11 @@
 ﻿import {
   useAuthStatus as baseUseAuthStatus,
-  useUser as baseUseUser,
-  useLogin as baseUseLogin,
-  useRegister as baseUseRegister,
-  useLogout as baseUseLogout,
   useBankIDAuth as baseUseBankIDAuth,
   useGeographicAccess as baseUseGeo,
+  useLogin as baseUseLogin,
+  useLogout as baseUseLogout,
+  useRegister as baseUseRegister,
+  useUser as baseUseUser,
 } from '../../../shared/hooks/useAuth'
 
 export const useAuthStatus = baseUseAuthStatus

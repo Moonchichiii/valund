@@ -1,5 +1,5 @@
-﻿import { Suspense, lazy } from 'react';
-import { createRouter, RouterProvider, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
+﻿import { lazy, Suspense } from 'react';
+import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router';
 import { Layout } from '@/app/layout/Layout';
 import { DashboardLayout } from '@/app/layout/DashboardLayout';
 import { Home } from '@/app/pages/Home';
@@ -14,7 +14,7 @@ const Dashboard = lazy(() => import('@/app/pages/Dashboard'));
 // Loading fallback component
 const LoadingSpinner = (): JSX.Element => (
   <div className="flex items-center justify-center min-h-[200px]">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-blue"></div>
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-blue" />
     <span className="ml-2 text-text-secondary">Loading...</span>
   </div>
 );

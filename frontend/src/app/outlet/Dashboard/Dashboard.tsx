@@ -1,6 +1,6 @@
 import React from "react";
 
-type Stat = { id: string; label: string; value: string };
+interface Stat { id: string; label: string; value: string }
 
 export const Dashboard: React.FC = () => {
     const stats: Stat[] = [
@@ -66,7 +66,7 @@ export const Dashboard: React.FC = () => {
     );
 };
 
-const styles: { [k: string]: React.CSSProperties } = {
+const styles: Record<string, React.CSSProperties> = {
     container: {
         padding: 20,
         fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial",

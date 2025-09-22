@@ -1,5 +1,5 @@
 ﻿import { apiClient, rootClient, setAccessToken } from './client'
-import type { User, Tokens, GeographicAccess, BankIDStartResponse } from '../features/accounts/types/auth'
+import type { BankIDStartResponse, GeographicAccess, Tokens, User } from '../features/accounts/types/auth'
 
 export const authApi = {
   async login(payload: { email: string; password: string }): Promise<{ tokens: Tokens; user: User }> {

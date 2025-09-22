@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle, Users, Briefcase } from 'lucide-react';
+import { Briefcase, CheckCircle, Mail, MapPin, Phone, Send, Users } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card, CardContent } from '@/shared/components/ui/Card';

@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useLogin, useBankIDAuth, useGeographicAccess } from '../hooks/useAuth'
+import { useBankIDAuth, useGeographicAccess, useLogin } from '../hooks/useAuth'
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate()
@@ -28,11 +28,11 @@ export const LoginForm: React.FC = () => {
       <form className="space-y-4" onSubmit={onSubmit}>
         <div>
           <label className="block text-sm mb-1">Email</label>
-          <input className="input-nordic w-full" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required data-testid="email-input" />
+          <input className="input-nordic w-full" type="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); }} required data-testid="email-input" />
         </div>
         <div>
           <label className="block text-sm mb-1">Password</label>
-          <input className="input-nordic w-full" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required data-testid="password-input" />
+          <input className="input-nordic w-full" type="password" autoComplete="current-password" value={password} onChange={(e) => { setPassword(e.target.value); }} required data-testid="password-input" />
         </div>
         <button className="btn-primary w-full" type="submit" disabled={login.isPending}>
           {login.isPending ? 'Signing in…' : 'Sign in'}
