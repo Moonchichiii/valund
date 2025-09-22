@@ -1,5 +1,5 @@
-import React from "react";
-import clsx from "clsx";
+import type React from "react";
+import { clsx } from "clsx";
 
 export interface LoadSpinnerProps {
   label?: string;
@@ -9,12 +9,12 @@ export interface LoadSpinnerProps {
   fullscreen?: boolean;
 }
 
-const toneVarMap: Record<NonNullable<LoadSpinnerProps["tone"]>, string> = {
-  primary: "--color-accent-primary",
-  blue: "--color-accent-blue",
-  green: "--color-accent-green",
-  warm: "--color-accent-warm",
-  mono: "--color-text-primary",
+const toneClassMap: Record<NonNullable<LoadSpinnerProps["tone"]>, string> = {
+  primary: "text-accent-primary",
+  blue: "text-accent-blue",
+  green: "text-accent-green",
+  warm: "text-accent-warm",
+  mono: "text-text-primary",
 };
 
 const DEFAULT_SIZE_REM = 3;
@@ -26,17 +26,14 @@ export default function LoadSpinner({
   className,
   fullscreen = true,
 }: LoadSpinnerProps): React.JSX.Element {
-  const styleVars = React.useMemo(() => {
-    const dim = `${sizeRem}rem`;
-    const circle = `${Math.max(sizeRem * 0.4, 0.75)}rem`;
-    const colorVarName = toneVarMap[tone] ?? toneVarMap.primary;
 
-    return {
-      "--ls-dim": dim,
-      "--ls-circle": circle,
-      "--ls-color": `rgb(var(${colorVarName}))`,
-    } as React.CSSProperties;
-  }, [sizeRem, tone]);
+  // Calculate dimensions using CSS custom properties
+  const spinnerStyle = {
+    '--spinner-size': `${sizeRem}rem`,
+    '--circle-size': `${Math.max(sizeRem * 0.4, 0.75)}rem`,
+  } as React.CSSProperties;
+
+  const toneClass = toneClassMap[tone] ?? toneClassMap.primary;
 
   return (
     <div
@@ -49,38 +46,55 @@ export default function LoadSpinner({
           : "relative grid place-items-center p-8",
         className
       )}
-      style={styleVars}
+      style={spinnerStyle}
     >
-      <div
-        className="relative animate-spin"
-        style={{
-          width: "var(--ls-dim)",
-          height: "var(--ls-dim)",
-        }}
-      >
-        {Array.from({ length: 4 }).map((_, i) => (
-          <span
-            key={i}
-            className="absolute rounded-full"
-            style={{
-              width: "var(--ls-circle)",
-              height: "var(--ls-circle)",
-              backgroundColor: "var(--ls-color, #2563eb)",
-              opacity: 0.9,
-              ...(i === 0
-                ? { top: 0, left: 0 }
-                : i === 1
-                ? { top: 0, right: 0 }
-                : i === 2
-                ? { bottom: 0, left: 0 }
-                : { bottom: 0, right: 0 }),
-            }}
-          />
-        ))}
+      {/* Spinner container */}
+      <div className={clsx(
+        "relative animate-spin",
+        "w-[var(--spinner-size)] h-[var(--spinner-size)]"
+      )}>
+        {/* Top-left dot */}
+        <span className={clsx(
+          "absolute rounded-full opacity-90",
+          "w-[var(--circle-size)] h-[var(--circle-size)]",
+          "top-0 left-0",
+          "bg-current",
+          toneClass
+        )} />
+
+        {/* Top-right dot */}
+        <span className={clsx(
+          "absolute rounded-full opacity-90",
+          "w-[var(--circle-size)] h-[var(--circle-size)]",
+          "top-0 right-0",
+          "bg-current",
+          toneClass
+        )} />
+
+        {/* Bottom-left dot */}
+        <span className={clsx(
+          "absolute rounded-full opacity-90",
+          "w-[var(--circle-size)] h-[var(--circle-size)]",
+          "bottom-0 left-0",
+          "bg-current",
+          toneClass
+        )} />
+
+        {/* Bottom-right dot */}
+        <span className={clsx(
+          "absolute rounded-full opacity-90",
+          "w-[var(--circle-size)] h-[var(--circle-size)]",
+          "bottom-0 right-0",
+          "bg-current",
+          toneClass
+        )} />
       </div>
 
+      {/* Loading label */}
       {label && (
-        <p className="mt-4 text-sm text-gray-600 select-none">{label}</p>
+        <p className="mt-4 text-sm text-text-secondary select-none">
+          {label}
+        </p>
       )}
     </div>
   );

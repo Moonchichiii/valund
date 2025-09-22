@@ -116,11 +116,14 @@ export const FindTalent = () => {
 
             {/* Category Filter */}
             <div className="relative min-w-[200px]">
+              <label htmlFor="category-filter" className="sr-only">Filter by category</label>
               <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-text-secondary w-5 h-5" />
               <select
+                id="category-filter"
                 className="w-full pl-12 pr-4 py-4 border border-border-medium rounded-nordic-lg focus:outline-none focus:border-accent-primary appearance-none bg-nordic-cream"
                 value={selectedCategory}
                 onChange={(e) => { setSelectedCategory(e.target.value); }}
+                aria-label="Filter by category"
               >
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>

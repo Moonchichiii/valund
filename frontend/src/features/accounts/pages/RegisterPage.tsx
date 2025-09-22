@@ -1,5 +1,5 @@
-﻿// src/features/accounts/pages/RegisterPage.tsx
-import React, { useState } from 'react';
+﻿import type React from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
@@ -27,7 +27,7 @@ interface FormErrors {
   acceptTerms?: string;
 }
 
-export const RegisterPage: React.FC = () => {
+export const RegisterPage = (): React.JSX.Element => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -86,7 +86,7 @@ export const RegisterPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof FormData, value: string | boolean) => {
+  const handleInputChange = (field: keyof FormData, value: string | boolean): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field as keyof FormErrors]) {
@@ -94,7 +94,7 @@ export const RegisterPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -109,12 +109,49 @@ export const RegisterPage: React.FC = () => {
 
       toast.success('Welcome to Valunds! Your account has been created.');
       navigate({ to: '/dashboard' });
-    } catch (error: any) {
-      toast.error(error?.message || 'Failed to create account. Please try again.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
+      toast.error(errorMessage);
     }
   };
 
-  const passwordStrength = React.useMemo(() => {
+  const togglePasswordVisibility = (): void => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    handleInputChange('firstName', e.target.value);
+  };
+
+  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    handleInputChange('lastName', e.target.value);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    handleInputChange('email', e.target.value);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    handleInputChange('password', e.target.value);
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    handleInputChange('confirmPassword', e.target.value);
+  };
+
+  const handleTermsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    handleInputChange('acceptTerms', e.target.checked);
+  };
+
+  const selectProfessional = (): void => {
+    handleInputChange('userType', 'professional');
+  };
+
+  const selectClient = (): void => {
+    handleInputChange('userType', 'client');
+  };
+
+  const passwordStrength = useMemo(() => {
     const { password } = formData;
     if (!password) return 0;
 
@@ -161,37 +198,45 @@ export const RegisterPage: React.FC = () => {
 
         {/* User Type Selection */}
         <Card className="bg-nordic-white">
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-text-primary">
+          <fieldset className="space-y-4">
+            <legend className="block text-sm font-medium text-text-primary">
               I am a...
-            </label>
+            </legend>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => { handleInputChange('userType', 'professional'); }}
+                onClick={selectProfessional}
                 className={`p-4 border-2 rounded-nordic-lg text-center transition-all ${
                   formData.userType === 'professional'
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
                     : 'border-border-medium text-text-secondary hover:border-border-light'
                 }`}
+                aria-pressed={formData.userType === 'professional' ? 'true' : 'false'}
+                aria-describedby="professional-description"
               >
                 <div className="font-medium">Professional</div>
-                <div className="text-xs mt-1">Looking for projects</div>
+                <div className="text-xs mt-1" id="professional-description">
+                  Looking for projects
+                </div>
               </button>
               <button
                 type="button"
-                onClick={() => { handleInputChange('userType', 'client'); }}
+                onClick={selectClient}
                 className={`p-4 border-2 rounded-nordic-lg text-center transition-all ${
                   formData.userType === 'client'
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
                     : 'border-border-medium text-text-secondary hover:border-border-light'
                 }`}
+                aria-pressed={formData.userType === 'client' ? 'true' : 'false'}
+                aria-describedby="client-description"
               >
                 <div className="font-medium">Client</div>
-                <div className="text-xs mt-1">Looking for talent</div>
+                <div className="text-xs mt-1" id="client-description">
+                  Looking for talent
+                </div>
               </button>
             </div>
-          </div>
+          </fieldset>
         </Card>
 
         {/* Registration Form */}
@@ -202,7 +247,7 @@ export const RegisterPage: React.FC = () => {
               <Input
                 label="First name"
                 value={formData.firstName}
-                onChange={(e) => { handleInputChange('firstName', e.target.value); }}
+                onChange={handleFirstNameChange}
                 placeholder="Erik"
                 error={errors.firstName}
                 required
@@ -211,7 +256,7 @@ export const RegisterPage: React.FC = () => {
               <Input
                 label="Last name"
                 value={formData.lastName}
-                onChange={(e) => { handleInputChange('lastName', e.target.value); }}
+                onChange={handleLastNameChange}
                 placeholder="Andersson"
                 error={errors.lastName}
                 required
@@ -223,7 +268,7 @@ export const RegisterPage: React.FC = () => {
               label="Email address"
               type="email"
               value={formData.email}
-              onChange={(e) => { handleInputChange('email', e.target.value); }}
+              onChange={handleEmailChange}
               placeholder="erik@company.com"
               error={errors.email}
               required
@@ -236,15 +281,16 @@ export const RegisterPage: React.FC = () => {
                   label="Password"
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
-                  onChange={(e) => { handleInputChange('password', e.target.value); }}
+                  onChange={handlePasswordChange}
                   placeholder="Create a strong password"
                   error={errors.password}
                   required
                   autoComplete="new-password"
+                  aria-describedby="password-strength"
                 />
                 <button
                   type="button"
-                  onClick={() => { setShowPassword(!showPassword); }}
+                  onClick={togglePasswordVisibility}
                   className="absolute right-3 top-[2.75rem] text-text-muted hover:text-text-secondary transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -254,7 +300,12 @@ export const RegisterPage: React.FC = () => {
 
               {/* Password Strength Indicator */}
               {formData.password && (
-                <div className="space-y-2">
+                <div
+                  className="space-y-2"
+                  id="password-strength"
+                  role="group"
+                  aria-labelledby="password-strength-label"
+                >
                   <div className="flex space-x-1">
                     {[0, 1, 2, 3, 4].map((level) => (
                       <div
@@ -262,11 +313,12 @@ export const RegisterPage: React.FC = () => {
                         className={`h-1 flex-1 rounded-full transition-colors ${
                           level < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-border-light'
                         }`}
+                        aria-hidden="true"
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-text-muted">
-                    Password strength: {strengthLabels[passwordStrength - 1] || 'Enter a password'}
+                  <p className="text-xs text-text-muted" id="password-strength-label">
+                    Password strength: {strengthLabels[passwordStrength - 1] ?? 'Enter a password'}
                   </p>
                 </div>
               )}
@@ -276,7 +328,7 @@ export const RegisterPage: React.FC = () => {
               label="Confirm password"
               type="password"
               value={formData.confirmPassword}
-              onChange={(e) => { handleInputChange('confirmPassword', e.target.value); }}
+              onChange={handleConfirmPasswordChange}
               placeholder="Confirm your password"
               error={errors.confirmPassword}
               required
@@ -291,23 +343,35 @@ export const RegisterPage: React.FC = () => {
                     name="accept-terms"
                     type="checkbox"
                     checked={formData.acceptTerms}
-                    onChange={(e) => { handleInputChange('acceptTerms', e.target.checked); }}
+                    onChange={handleTermsChange}
                     className="h-4 w-4 text-accent-blue focus:ring-accent-blue border-border-medium rounded"
+                    aria-describedby="terms-description terms-error"
+                    required
                   />
                 </div>
                 <div className="ml-3">
-                  <label htmlFor="accept-terms" className="text-sm text-text-secondary">
+                  <label htmlFor="accept-terms" className="text-sm text-text-secondary" id="terms-description">
                     I accept the{' '}
-                    <a href="#" className="text-accent-blue hover:text-accent-primary">
+                    <a
+                      href="/terms"
+                      className="text-accent-blue hover:text-accent-primary"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Terms of Service
                     </a>{' '}
                     and{' '}
-                    <a href="#" className="text-accent-blue hover:text-accent-primary">
+                    <a
+                      href="/privacy"
+                      className="text-accent-blue hover:text-accent-primary"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Privacy Policy
                     </a>
                   </label>
                   {errors.acceptTerms && (
-                    <p className="text-sm text-error-500 mt-1">{errors.acceptTerms}</p>
+                    <p className="text-sm text-error-500 mt-1" id="terms-error">{errors.acceptTerms}</p>
                   )}
                 </div>
               </div>

@@ -1,25 +1,51 @@
-﻿import { useState } from 'react';
+﻿import type React from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { useAuthStatus, useLogout } from '@/shared/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 
-export const Header = () => {
+export const Header = (): React.JSX.Element => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated, user } = useAuthStatus();
   const logout = useLogout();
 
   const navigation = [
-    { name: 'Find Talent', href: '/find-talent' },
-    { name: 'For Professionals', href: '/professionals' },
-    { name: 'About', href: '/about' },
-    { name: 'Contact', href: '/contact' },
+    { name: 'Find Talent', href: '/find-talent' as const },
+    { name: 'For Professionals', href: '/professionals' as const },
+    { name: 'About', href: '/about' as const },
+    { name: 'Contact', href: '/contact' as const },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string): boolean => location.pathname === path;
 
   const firstInitial =
-    user?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || 'U';
+    user?.first_name?.[0] ?? user?.email?.[0]?.toUpperCase() ?? 'U';
+
+  const handleMenuToggle = (): void => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleMenuClose = (): void => {
+    setIsMenuOpen(false);
+  };
+
+  const handleLogout = (): void => {
+    logout.mutate();
+  };
+
+  const handleMobileLogout = (): void => {
+    logout.mutate();
+    setIsMenuOpen(false);
+  };
+
+  const menuButtonProps = {
+    onClick: handleMenuToggle,
+    className: "text-text-primary p-2 rounded-nordic hover:bg-nordic-warm transition-colors",
+    'aria-label': isMenuOpen ? 'Close menu' : 'Open menu',
+    'aria-expanded': isMenuOpen,
+    type: 'button' as const,
+  };
 
   return (
     <nav className="bg-nordic-cream border-b border-border-light">
@@ -51,45 +77,52 @@ export const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <>
-                <Link to="/app/dashboard">
+                {/* Dashboard Link - Using correct route */}
+                <Link to="/dashboard">
                   <Button variant="ghost" size="sm">
                     Dashboard
                   </Button>
                 </Link>
 
+                {/* Logout Button */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => { logout.mutate(); }}
+                  onClick={handleLogout}
                   data-testid="logout-btn"
                 >
                   Sign out
                 </Button>
 
-                <div className="w-8 h-8 bg-accent-blue rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                {/* User Avatar */}
+                <div
+                  className="w-8 h-8 bg-accent-blue rounded-full flex items-center justify-center text-white text-sm font-semibold"
+                  title={`Logged in as ${user?.email ?? 'User'}`}
+                  aria-label={`User avatar for ${user?.email ?? 'User'}`}
+                >
                   {firstInitial}
                 </div>
               </>
             ) : (
               <>
-                <Link to="/login" data-testid="signin-btn">
+                {/* Auth buttons without asChild prop */}
+                <a href="/login" data-testid="signin-btn">
                   <Button variant="ghost" size="sm">
                     Sign In
                   </Button>
-                </Link>
-                <Link to="/register" data-testid="signup-btn">
-                  <Button size="sm">Get Started</Button>
-                </Link>
+                </a>
+                <a href="/register" data-testid="signup-btn">
+                  <Button size="sm">
+                    Get Started
+                  </Button>
+                </a>
               </>
             )}
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button
-              onClick={() => { setIsMenuOpen(!isMenuOpen); }}
-              className="text-text-primary p-2 rounded-nordic hover:bg-nordic-warm transition-colors"
-            >
+            <button {...menuButtonProps}>
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -115,7 +148,7 @@ export const Header = () => {
                       ? 'text-text-primary bg-nordic-warm'
                       : 'text-text-secondary hover:text-text-primary hover:bg-nordic-warm'
                   }`}
-                  onClick={() => { setIsMenuOpen(false); }}
+                  onClick={handleMenuClose}
                 >
                   {item.name}
                 </Link>
@@ -126,40 +159,38 @@ export const Header = () => {
                 {isAuthenticated ? (
                   <>
                     <Link
-                      to="/app/dashboard"
+                      to="/dashboard"
                       className="block bg-accent-primary text-white px-4 py-3 rounded-nordic-xl text-sm font-medium text-center"
-                      onClick={() => { setIsMenuOpen(false); }}
+                      onClick={handleMenuClose}
                     >
                       Dashboard
                     </Link>
 
                     <button
-                      onClick={() => {
-                        logout.mutate();
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={handleMobileLogout}
                       className="block w-full text-center px-4 py-3 text-sm font-medium text-text-secondary hover:text-text-primary"
                       data-testid="logout-btn"
+                      type="button"
                     >
                       Sign out
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link
-                      to="/login"
+                    <a
+                      href="/login"
                       className="block text-center px-4 py-3 text-sm font-medium text-text-secondary hover:text-text-primary"
-                      onClick={() => { setIsMenuOpen(false); }}
+                      onClick={handleMenuClose}
                     >
                       Sign In
-                    </Link>
-                    <Link
-                      to="/register"
+                    </a>
+                    <a
+                      href="/register"
                       className="block bg-accent-primary text-white px-4 py-3 rounded-nordic-xl text-sm font-medium text-center"
-                      onClick={() => { setIsMenuOpen(false); }}
+                      onClick={handleMenuClose}
                     >
                       Get Started
-                    </Link>
+                    </a>
                   </>
                 )}
               </div>

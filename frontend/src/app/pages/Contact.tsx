@@ -127,10 +127,11 @@ export const Contact = () => {
                       onChange={handleChange}
                     />
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-text-primary">
+                      <label htmlFor="role-select" className="block text-sm font-medium text-text-primary">
                         I am a... <span className="text-error-500">*</span>
                       </label>
                       <select
+                        id="role-select"
                         name="role"
                         required
                         className="w-full px-4 py-3 border border-border-medium rounded-nordic-lg focus:outline-none focus:border-accent-primary transition-colors bg-nordic-cream"
