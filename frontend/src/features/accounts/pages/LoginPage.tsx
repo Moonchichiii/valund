@@ -1,8 +1,6 @@
-﻿import React from 'react'
-import { LoginForm } from '../components/LoginForm'
-// src/app/pages/auth/LoginPage.tsx
+﻿// src/features/accounts/pages/LoginPage.tsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useLogin } from '@/shared/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
@@ -46,7 +44,7 @@ export const LoginPage: React.FC = () => {
     try {
       await loginMutation.mutateAsync({ email, password });
       toast.success('Welcome back!');
-      navigate('/dashboard');
+      navigate({ to: '/dashboard' });
     } catch (error: any) {
       toast.error(error?.message || 'Failed to sign in. Please check your credentials.');
     }

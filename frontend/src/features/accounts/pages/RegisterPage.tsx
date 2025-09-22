@@ -1,12 +1,11 @@
-﻿import React from 'react'
-import { RegisterForm } from '../components/RegisterForm'
+﻿// src/features/accounts/pages/RegisterPage.tsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useRegister } from '@/shared/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';
-import { Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface FormData {
@@ -109,7 +108,7 @@ export const RegisterPage: React.FC = () => {
       });
 
       toast.success('Welcome to Valunds! Your account has been created.');
-      navigate('/dashboard');
+      navigate({ to: '/dashboard' });
     } catch (error: any) {
       toast.error(error?.message || 'Failed to create account. Please try again.');
     }
