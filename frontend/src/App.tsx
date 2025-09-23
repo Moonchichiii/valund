@@ -10,6 +10,9 @@ import {
 import { Layout } from '@/app/layouts/Layout';
 import { DashboardLayout } from '@/app/layouts/DashboardLayout';
 import { Home } from '@/app/pages/Home';
+import { LoginPage } from '@/features/accounts/pages/LoginPage';
+import { RegisterPage } from '@/features/accounts/pages/RegisterPage';
+import '@/assets/styles/index.css';
 
 // Lazy load non-critical pages
 const About = lazy(() => import('@/app/pages/About').then(module => ({ default: module.About })));
@@ -96,7 +99,26 @@ const contactRoute = createRoute({
   )
 });
 
-// Dashboard layout route
+// Auth routes (without main layout)
+const authLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'auth-layout',
+  component: () => <Outlet />
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/login',
+  component: LoginPage
+});
+
+const registerRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/register',
+  component: RegisterPage
+});
+
+// Dashboard layout route (protected)
 const dashboardLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard',
@@ -126,6 +148,10 @@ const routeTree = rootRoute.addChildren([
     findTalentRoute,
     professionalsRoute,
     contactRoute
+  ]),
+  authLayoutRoute.addChildren([
+    loginRoute,
+    registerRoute
   ]),
   dashboardLayoutRoute.addChildren([
     dashboardIndexRoute

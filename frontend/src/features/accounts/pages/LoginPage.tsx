@@ -1,8 +1,7 @@
-﻿// src/features/accounts/pages/LoginPage.tsx
-import type React from 'react';
+﻿import type React from 'react';
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useLogin } from '@/shared/hooks/useAuth';
+import { useLogin } from '@/features/accounts/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';
@@ -42,27 +41,35 @@ export const LoginPage = (): React.JSX.Element => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    try {
-      await loginMutation.mutateAsync({ email, password });
-      toast.success('Welcome back!');
-      navigate({ to: '/dashboard' });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in. Please check your credentials.';
-      toast.error(errorMessage);
-    }
+    loginMutation.mutate({ email, password }, {
+      onSuccess: () => {
+        toast.success('Welcome back!');
+        void navigate({ to: '/dashboard' });
+      },
+      onError: (error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to sign in. Please check your credentials.';
+        toast.error(errorMessage);
+      }
+    });
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setEmail(e.target.value);
+    if (errors.email) {
+      setErrors(prev => ({ ...prev, email: undefined }));
+    }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setPassword(e.target.value);
+    if (errors.password) {
+      setErrors(prev => ({ ...prev, password: undefined }));
+    }
   };
 
   const togglePasswordVisibility = (): void => {

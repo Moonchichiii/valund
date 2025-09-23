@@ -1,14 +1,14 @@
 ﻿import type React from 'react';
 import { useState } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
-import { useAuthStatus, useLogout } from '@/shared/hooks/useAuth';
+import { useAuthStatus, useLogout } from '@/features/accounts/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 
 export const Header = (): React.JSX.Element => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated, user } = useAuthStatus();
-  const logout = useLogout();
+  const logoutMutation = useLogout();
 
   const navigation = [
     { name: 'Find Talent', href: '/find-talent' as const },
@@ -19,8 +19,7 @@ export const Header = (): React.JSX.Element => {
 
   const isActive = (path: string): boolean => location.pathname === path;
 
-  const firstInitial =
-    user?.first_name?.[0] ?? user?.email?.[0]?.toUpperCase() ?? 'U';
+  const firstInitial = user?.first_name?.[0] ?? user?.email?.[0]?.toUpperCase() ?? 'U';
 
   const handleMenuToggle = (): void => {
     setIsMenuOpen(!isMenuOpen);
@@ -31,11 +30,11 @@ export const Header = (): React.JSX.Element => {
   };
 
   const handleLogout = (): void => {
-    logout.mutate();
+    logoutMutation.mutate();
   };
 
   const handleMobileLogout = (): void => {
-    logout.mutate();
+    logoutMutation.mutate();
     setIsMenuOpen(false);
   };
 
@@ -48,7 +47,7 @@ export const Header = (): React.JSX.Element => {
   };
 
   return (
-    <nav className="bg-nordic-cream border-b border-border-light">
+    <nav className="bg-nordic-cream border-b border-border-light sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-6 lg:px-12">
         <div className="flex justify-between items-center py-8">
           {/* Logo */}
@@ -77,7 +76,7 @@ export const Header = (): React.JSX.Element => {
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <>
-                {/* Dashboard Link - Using correct route */}
+                {/* Dashboard Link */}
                 <Link to="/dashboard">
                   <Button variant="ghost" size="sm">
                     Dashboard
@@ -105,7 +104,7 @@ export const Header = (): React.JSX.Element => {
               </>
             ) : (
               <>
-                {/* Auth buttons without asChild prop */}
+                {/* Auth buttons */}
                 <a href="/login" data-testid="signin-btn">
                   <Button variant="ghost" size="sm">
                     Sign In

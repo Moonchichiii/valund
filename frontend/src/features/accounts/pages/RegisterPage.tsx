@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useRegister } from '@/shared/hooks/useAuth';
+import { useRegister } from '@/features/accounts/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';
@@ -164,6 +164,8 @@ export const RegisterPage = (): React.JSX.Element => {
     return strength;
   }, [formData.password]);
 
+  // Replace lines 170-406 in your RegisterPage.tsx with this:
+
   const strengthColors = ['bg-error-500', 'bg-error-500', 'bg-warning-500', 'bg-accent-blue', 'bg-success-500'];
   const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
 
@@ -210,7 +212,7 @@ export const RegisterPage = (): React.JSX.Element => {
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
                     : 'border-border-medium text-text-secondary hover:border-border-light'
                 }`}
-                aria-pressed={formData.userType === 'professional' ? 'true' : 'false'}
+                aria-pressed={formData.userType === 'professional'}
                 aria-describedby="professional-description"
               >
                 <div className="font-medium">Professional</div>
@@ -226,7 +228,7 @@ export const RegisterPage = (): React.JSX.Element => {
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
                     : 'border-border-medium text-text-secondary hover:border-border-light'
                 }`}
-                aria-pressed={formData.userType === 'client' ? 'true' : 'false'}
+                aria-pressed={formData.userType === 'client'}
                 aria-describedby="client-description"
               >
                 <div className="font-medium">Client</div>

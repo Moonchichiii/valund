@@ -54,11 +54,11 @@ export const Dashboard = (): React.JSX.Element => {
               const hue = 200 + i * 8;
               return (
                 <div
-                  key={i}
+                  key={`chart-bar-${i}`}
                   className="w-3 rounded"
                   style={{
-                    height: `${height}px`,
-                    backgroundColor: `hsl(${hue}deg 60% 55%)`,
+                    height: height.toString() + 'px',
+                    backgroundColor: 'hsl(' + hue.toString() + 'deg 60% 55%)',
                   }}
                 />
               );

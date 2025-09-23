@@ -22,9 +22,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     rightIcon,
     className,
     id,
-    ...props
+    ...restProps
   }, ref) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId = id ?? `input-${Math.random().toString(36).substring(2, 11)}`;
 
     const baseClasses = 'w-full border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-text-muted text-text-primary';
 
@@ -57,7 +57,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label htmlFor={inputId} className="block text-sm font-medium text-text-primary">
             {label}
-            {props.required && <span className="text-error-500 ml-1">*</span>}
+            {restProps.required && <span className="text-error-500 ml-1">*</span>}
           </label>
         )}
 
@@ -72,7 +72,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={inputClasses}
-            {...props}
+            {...restProps}
           />
 
           {rightIcon && (

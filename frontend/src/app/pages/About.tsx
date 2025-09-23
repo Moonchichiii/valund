@@ -1,4 +1,3 @@
-// src/app/pages/About.tsx
 import { Award, Globe, Heart, Lightbulb, Shield, Users } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Card, CardContent } from '@/shared/components/ui/Card';

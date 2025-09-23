@@ -1,10 +1,12 @@
 import React from 'react';
 import { Outlet, redirect } from '@tanstack/react-router';
-import { useAuthStatus } from '@/shared/hooks/useAuth';
+import { useAuthStatus } from '@/features/accounts/hooks/useAuth';
 import { DashboardLayout } from '@/app/layouts/DashboardLayout';
+
 
 export const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuthStatus();
+
 
   if (isLoading) {
     return (
@@ -17,9 +19,13 @@ export const ProtectedRoute: React.FC = () => {
     );
   }
 
+
   if (!isAuthenticated) {
+    const redirectError = new Error('Authentication required');
+    redirectError.name = 'RedirectError';
     throw redirect({ to: '/login' });
   }
+
 
   return (
     <DashboardLayout>

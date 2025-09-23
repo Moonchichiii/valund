@@ -27,13 +27,21 @@ export default function LoadSpinner({
   fullscreen = true,
 }: LoadSpinnerProps): React.JSX.Element {
 
-  // Calculate dimensions using CSS custom properties
-  const spinnerStyle = {
-    '--spinner-size': `${sizeRem}rem`,
-    '--circle-size': `${Math.max(sizeRem * 0.4, 0.75)}rem`,
-  } as React.CSSProperties;
+  // Calculate dimensions using inline styles for better TypeScript compatibility
+  const spinnerSize = sizeRem.toString() + 'rem';
+  const circleSize = Math.max(sizeRem * 0.4, 0.75).toString() + 'rem';
 
-  const toneClass = toneClassMap[tone] ?? toneClassMap.primary;
+  const spinnerStyle: React.CSSProperties = {
+    width: spinnerSize,
+    height: spinnerSize,
+  };
+
+  const circleStyle: React.CSSProperties = {
+    width: circleSize,
+    height: circleSize,
+  };
+
+  const toneClass = toneClassMap[tone];
 
   return (
     <div
@@ -46,48 +54,47 @@ export default function LoadSpinner({
           : "relative grid place-items-center p-8",
         className
       )}
-      style={spinnerStyle}
     >
       {/* Spinner container */}
-      <div className={clsx(
-        "relative animate-spin",
-        "w-[var(--spinner-size)] h-[var(--spinner-size)]"
-      )}>
+      <div
+        className="relative animate-spin"
+        style={spinnerStyle}
+      >
         {/* Top-left dot */}
-        <span className={clsx(
-          "absolute rounded-full opacity-90",
-          "w-[var(--circle-size)] h-[var(--circle-size)]",
-          "top-0 left-0",
-          "bg-current",
-          toneClass
-        )} />
+        <span
+          className={clsx(
+            "absolute rounded-full opacity-90 top-0 left-0 bg-current",
+            toneClass
+          )}
+          style={circleStyle}
+        />
 
         {/* Top-right dot */}
-        <span className={clsx(
-          "absolute rounded-full opacity-90",
-          "w-[var(--circle-size)] h-[var(--circle-size)]",
-          "top-0 right-0",
-          "bg-current",
-          toneClass
-        )} />
+        <span
+          className={clsx(
+            "absolute rounded-full opacity-90 top-0 right-0 bg-current",
+            toneClass
+          )}
+          style={circleStyle}
+        />
 
         {/* Bottom-left dot */}
-        <span className={clsx(
-          "absolute rounded-full opacity-90",
-          "w-[var(--circle-size)] h-[var(--circle-size)]",
-          "bottom-0 left-0",
-          "bg-current",
-          toneClass
-        )} />
+        <span
+          className={clsx(
+            "absolute rounded-full opacity-90 bottom-0 left-0 bg-current",
+            toneClass
+          )}
+          style={circleStyle}
+        />
 
         {/* Bottom-right dot */}
-        <span className={clsx(
-          "absolute rounded-full opacity-90",
-          "w-[var(--circle-size)] h-[var(--circle-size)]",
-          "bottom-0 right-0",
-          "bg-current",
-          toneClass
-        )} />
+        <span
+          className={clsx(
+            "absolute rounded-full opacity-90 bottom-0 right-0 bg-current",
+            toneClass
+          )}
+          style={circleStyle}
+        />
       </div>
 
       {/* Loading label */}

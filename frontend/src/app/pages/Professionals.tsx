@@ -1,4 +1,3 @@
-// src/app/pages/Professionals.tsx
 import { Link } from '@tanstack/react-router';
 import { CheckCircle, Clock, Heart, Shield, TrendingUp, Users } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';

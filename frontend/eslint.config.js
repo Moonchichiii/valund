@@ -23,6 +23,9 @@ export default tseslint.config([
       parserOptions: {
         project: './tsconfig.app.json',
         tsconfigRootDir: import.meta.dirname,
+        ecmaFeatures: {
+          jsx: true  // THIS WAS MISSING - CRITICAL FIX
+        }
       },
     },
     plugins: {
