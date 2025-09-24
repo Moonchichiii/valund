@@ -21,9 +21,10 @@ export const ProtectedRoute: React.FC = () => {
 
 
   if (!isAuthenticated) {
-    const redirectError = new Error('Authentication required');
+    const redirectResult = redirect({ to: '/login' });
+    const redirectError = Object.assign(new Error('Authentication required'), redirectResult);
     redirectError.name = 'RedirectError';
-    throw redirect({ to: '/login' });
+    throw redirectError;
   }
 
 

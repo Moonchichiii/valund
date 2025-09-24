@@ -1,11 +1,19 @@
-﻿import axios, { type InternalAxiosRequestConfig } from 'axios';
+﻿// src/api/client.ts - Fixed API client configuration
+
+import axios, { type InternalAxiosRequestConfig } from 'axios';
+
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_API_URL?: string;
+  }
+}
 
 const apiUrl = import.meta.env.VITE_API_URL;
 export const API_ORIGIN = typeof apiUrl === 'string' ? apiUrl : 'http://localhost:8000';
 
-// For JWT auth endpoints (/api/auth/)
+// For JWT auth endpoints (/api/auth/) - FIXED: Remove duplicate /auth
 export const apiClient = axios.create({
-  baseURL: `${API_ORIGIN}/api/auth`,
+  baseURL: `${API_ORIGIN}/api`, // Changed from /api/auth to /api
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

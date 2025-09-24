@@ -60,10 +60,10 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       className
     );
 
-    return (
-      <div ref={ref} className={classes} {...props}>
-        {children}
-      </div>
+    return React.createElement(
+      'div',
+      { ...props, ref, className: classes },
+      children
     );
   }
 );
@@ -73,51 +73,50 @@ Card.displayName = 'Card';
 // Card sub-components for better composition
 export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={clsx('flex flex-col space-y-1.5 mb-6', className)}
-      {...props}
-    />
+    React.createElement(
+      'div',
+      { ...props, ref, className: clsx('flex flex-col space-y-1.5 mb-6', className) }
+    )
   )
 );
 CardHeader.displayName = 'CardHeader';
 
 export const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3
-      ref={ref}
-      className={clsx('text-xl font-semibold leading-none tracking-tight text-text-primary', className)}
-      {...props}
-    />
+    React.createElement(
+      'h3',
+      { ...props, ref, className: clsx('text-xl font-semibold leading-none tracking-tight text-text-primary', className) }
+    )
   )
 );
 CardTitle.displayName = 'CardTitle';
 
 export const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p
-      ref={ref}
-      className={clsx('text-text-secondary leading-relaxed', className)}
-      {...props}
-    />
+    React.createElement(
+      'p',
+      { ...props, ref, className: clsx('text-text-secondary leading-relaxed', className) }
+    )
   )
 );
 CardDescription.displayName = 'CardDescription';
 
 export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={clsx('mb-6', className)} {...props} />
+    React.createElement(
+      'div',
+      { ...props, ref, className: clsx('mb-6', className) }
+    )
   )
 );
 CardContent.displayName = 'CardContent';
 
 export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={clsx('flex items-center gap-3 pt-6 mt-6 border-t border-border-light', className)}
-      {...props}
-    />
+    React.createElement(
+      'div',
+      { ...props, ref, className: clsx('flex items-center gap-3 pt-6 mt-6 border-t border-border-light', className) }
+    )
   )
 );
 CardFooter.displayName = 'CardFooter';

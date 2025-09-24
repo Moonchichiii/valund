@@ -25,6 +25,7 @@ celery-progress==0.3
 djangorestframework-simplejwt[crypto]==5.5.1
 django-allauth==65.11.2
 cryptography==42.0.2
+django-ratelimit
 
 # API Documentation
 drf-spectacular==0.28.0
@@ -34,7 +35,7 @@ Pillow==11.3.0
 django-storages==1.14.2
 boto3==1.40.33
 
-# Stripe
+# Payments
 stripe==12.5.1
 
 # Monitoring
@@ -48,6 +49,7 @@ elasticsearch==8.12.1
 
 # Utils
 requests==2.31.0
+user-agents
 
 # Development
 django-debug-toolbar==4.2.0

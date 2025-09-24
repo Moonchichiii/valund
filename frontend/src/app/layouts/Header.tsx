@@ -1,10 +1,9 @@
-﻿import type React from 'react';
-import { useState } from 'react';
+﻿import { type JSX, useCallback, useState } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { useAuthStatus, useLogout } from '@/features/accounts/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 
-export const Header = (): React.JSX.Element => {
+export const Header = (): JSX.Element => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated, user } = useAuthStatus();
@@ -19,32 +18,29 @@ export const Header = (): React.JSX.Element => {
 
   const isActive = (path: string): boolean => location.pathname === path;
 
-  const firstInitial = user?.first_name?.[0] ?? user?.email?.[0]?.toUpperCase() ?? 'U';
+  // Fix: If email exists, it's a string - remove optional chaining from [0] access
+  const firstInitial = user?.first_name?.[0] ?? user?.email[0]?.toUpperCase() ?? 'U';
 
-  const handleMenuToggle = (): void => {
+  // Fix 3: Use useCallback for all event handlers to prevent unnecessary re-renders
+  const handleMenuToggle = useCallback((): void => {
     setIsMenuOpen(!isMenuOpen);
-  };
+  }, [isMenuOpen]);
 
-  const handleMenuClose = (): void => {
+  const handleMenuClose = useCallback((): void => {
     setIsMenuOpen(false);
-  };
+  }, []);
 
-  const handleLogout = (): void => {
+  const handleLogout = useCallback((): void => {
     logoutMutation.mutate();
-  };
+  }, [logoutMutation]);
 
-  const handleMobileLogout = (): void => {
+  const handleMobileLogout = useCallback((): void => {
     logoutMutation.mutate();
     setIsMenuOpen(false);
-  };
+  }, [logoutMutation]);
 
-  const menuButtonProps = {
-    onClick: handleMenuToggle,
-    className: "text-text-primary p-2 rounded-nordic hover:bg-nordic-warm transition-colors",
-    'aria-label': isMenuOpen ? 'Close menu' : 'Open menu',
-    'aria-expanded': isMenuOpen,
-    type: 'button' as const,
-  };
+  // Pre-compute ARIA attribute to avoid browser dev tools parsing issues
+  const menuExpanded = isMenuOpen ? 'true' : 'false';
 
   return (
     <nav className="bg-nordic-cream border-b border-border-light sticky top-0 z-50 shadow-sm">
@@ -121,7 +117,13 @@ export const Header = (): React.JSX.Element => {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button {...menuButtonProps}>
+            <button
+              onClick={handleMenuToggle}
+              className="text-text-primary p-2 rounded-nordic hover:bg-nordic-warm transition-colors"
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuExpanded}
+              type="button"
+            >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"

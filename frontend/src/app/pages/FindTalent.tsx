@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { type JSX, useCallback, useState } from 'react';
 import { CheckCircle, Clock, Filter, MapPin, Search, Star } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
-import { Input } from '@/shared/components/ui/Input';
+import { Input as _Input } from '@/shared/components/ui/Input';
 import { Card, CardContent, CardFooter } from '@/shared/components/ui/Card';
 
-export const FindTalent = () => {
+export const FindTalent = (): JSX.Element => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -88,6 +88,15 @@ export const FindTalent = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Event handlers wrapped in useCallback for performance
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const handleCategoryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>): void => {
+    setSelectedCategory(e.target.value);
+  }, []);
+
   return (
     <div className="min-h-screen bg-nordic-cream py-12">
       <div className="max-w-6xl mx-auto px-6 lg:px-12">
@@ -110,7 +119,7 @@ export const FindTalent = () => {
                 placeholder="Search by name, skill, or expertise..."
                 className="w-full pl-12 pr-4 py-4 border border-border-medium rounded-nordic-lg focus:outline-none focus:border-accent-primary transition-colors bg-nordic-cream"
                 value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); }}
+                onChange={handleSearchChange}
               />
             </div>
 
@@ -122,7 +131,7 @@ export const FindTalent = () => {
                 id="category-filter"
                 className="w-full pl-12 pr-4 py-4 border border-border-medium rounded-nordic-lg focus:outline-none focus:border-accent-primary appearance-none bg-nordic-cream"
                 value={selectedCategory}
-                onChange={(e) => { setSelectedCategory(e.target.value); }}
+                onChange={handleCategoryChange}
                 aria-label="Filter by category"
               >
                 {categories.map(cat => (
@@ -174,9 +183,9 @@ export const FindTalent = () => {
 
                 {/* Skills */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {pro.skills.map((skill, index) => (
+                  {pro.skills.map((skill) => (
                     <span
-                      key={index}
+                      key={skill}
                       className="px-3 py-1 bg-nordic-warm text-text-secondary text-sm rounded-full font-medium"
                     >
                       {skill}

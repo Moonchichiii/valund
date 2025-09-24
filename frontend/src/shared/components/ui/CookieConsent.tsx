@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { BarChart3, Settings, Shield, X } from 'lucide-react';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -11,7 +11,7 @@ interface CookieConsentProps {
   onCustomize?: (preferences: CookiePreferences) => void;
 }
 
-interface CookiePreferences {
+export interface CookiePreferences {
   necessary: boolean;
   analytics: boolean;
   marketing: boolean;
@@ -19,7 +19,7 @@ interface CookiePreferences {
 }
 
 // Custom Cookie Icon Component with crumbs
-const CookieIcon: React.FC<{ className?: string }> = ({ className }) => (
+const CookieIcon: React.FC<{ className?: string }> = ({ className }): React.JSX.Element => (
   <svg
     width="24"
     height="24"
@@ -67,8 +67,8 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
   onReject,
   onCustomize,
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [showDetails, setShowDetails] = useState<boolean>(false);
   const [preferences, setPreferences] = useState<CookiePreferences>({
     necessary: true, // Always true, cannot be disabled
     analytics: false,
@@ -81,12 +81,16 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
     const hasConsent = localStorage.getItem('valunds-cookie-consent');
     if (!hasConsent) {
       // Delay to ensure page has loaded
-      const timer = setTimeout(() => { setIsVisible(true); }, 1000);
-      return () => { clearTimeout(timer); };
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 1000);
+      return (): void => {
+        clearTimeout(timer);
+      };
     }
   }, []);
 
-  const handleAcceptAll = () => {
+  const handleAcceptAll = useCallback((): void => {
     const allAccepted = {
       necessary: true,
       analytics: true,
@@ -96,9 +100,9 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
     localStorage.setItem('valunds-cookie-consent', JSON.stringify(allAccepted));
     setIsVisible(false);
     onAcceptAll?.();
-  };
+  }, [onAcceptAll]);
 
-  const handleAcceptNecessary = () => {
+  const handleAcceptNecessary = useCallback((): void => {
     const necessaryOnly = {
       necessary: true,
       analytics: false,
@@ -108,9 +112,9 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
     localStorage.setItem('valunds-cookie-consent', JSON.stringify(necessaryOnly));
     setIsVisible(false);
     onAcceptNecessary?.();
-  };
+  }, [onAcceptNecessary]);
 
-  const handleReject = () => {
+  const handleReject = useCallback((): void => {
     const rejected = {
       necessary: true, // Legally required cookies
       analytics: false,
@@ -120,22 +124,43 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
     localStorage.setItem('valunds-cookie-consent', JSON.stringify(rejected));
     setIsVisible(false);
     onReject?.();
-  };
+  }, [onReject]);
 
-  const handleCustomize = () => {
+  const handleCustomize = useCallback((): void => {
     localStorage.setItem('valunds-cookie-consent', JSON.stringify(preferences));
     setIsVisible(false);
     onCustomize?.(preferences);
-  };
+  }, [preferences, onCustomize]);
 
-  const handlePreferenceChange = (category: keyof CookiePreferences, value: boolean) => {
+  const handlePreferenceChange = useCallback((category: keyof CookiePreferences, value: boolean): void => {
     if (category === 'necessary') return; // Cannot disable necessary cookies
 
     setPreferences(prev => ({
       ...prev,
       [category]: value,
     }));
-  };
+  }, []);
+
+  // Create specific handlers to avoid JSX no-bind warnings
+  const handleAnalyticsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
+    handlePreferenceChange('analytics', e.target.checked);
+  }, [handlePreferenceChange]);
+
+  const handleMarketingChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
+    handlePreferenceChange('marketing', e.target.checked);
+  }, [handlePreferenceChange]);
+
+  const handleFunctionalChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
+    handlePreferenceChange('functional', e.target.checked);
+  }, [handlePreferenceChange]);
+
+  const toggleDetails = useCallback((): void => {
+    setShowDetails(prev => !prev);
+  }, []);
+
+  const handleClose = useCallback((): void => {
+    setIsVisible(false);
+  }, []);
 
   if (!isVisible) return null;
 
@@ -155,9 +180,17 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
         aria-describedby="cookie-consent-description"
         aria-modal="true"
       >
-        <Card className="max-w-4xl mx-auto shadow-nordic-xl border-cookie-200 bg-gradient-to-r from-nordic-white to-cookie-50">
+        <Card className="relative max-w-4xl mx-auto shadow-nordic-xl border-cookie-200 bg-gradient-to-r from-nordic-white to-cookie-50">
           {/* Main Content */}
           <div className="flex flex-col lg:flex-row gap-6 items-start">
+            {/* Add close button */}
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 p-2 text-text-muted hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded-lg"
+              aria-label="Close cookie consent banner"
+            >
+              <X className="w-4 h-4" />
+            </button>
 
             {/* Icon and Text */}
             <div className="flex items-start gap-4 flex-1">
@@ -179,9 +212,9 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                   We use cookies to enhance your browsing experience, provide personalized content, and analyze our traffic.
                   By clicking "Accept All", you consent to our use of cookies.{' '}
                   <button
-                    onClick={() => { setShowDetails(!showDetails); }}
+                    onClick={toggleDetails}
                     className="text-accent-blue hover:text-accent-primary underline font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded"
-                    aria-expanded={showDetails}
+                    aria-expanded={showDetails ? 'true' : 'false'}
                     aria-controls="cookie-details"
                   >
                     Learn more
@@ -211,9 +244,9 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => { setShowDetails(!showDetails); }}
+                onClick={toggleDetails}
                 className="border-border-medium"
-                aria-expanded={showDetails}
+                aria-expanded={showDetails ? 'true' : 'false'}
                 aria-controls="cookie-details"
               >
                 <Settings className="w-4 h-4 mr-2" />
@@ -279,7 +312,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                       id="analytics-cookies"
                       type="checkbox"
                       checked={preferences.analytics}
-                      onChange={(e) => { handlePreferenceChange('analytics', e.target.checked); }}
+                      onChange={handleAnalyticsChange}
                       className="rounded border-border-medium focus:ring-2 focus:ring-accent-blue focus:ring-offset-2"
                       aria-describedby="analytics-description"
                     />
@@ -305,7 +338,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                       id="marketing-cookies"
                       type="checkbox"
                       checked={preferences.marketing}
-                      onChange={(e) => { handlePreferenceChange('marketing', e.target.checked); }}
+                      onChange={handleMarketingChange}
                       className="rounded border-border-medium focus:ring-2 focus:ring-accent-blue focus:ring-offset-2"
                       aria-describedby="marketing-description"
                     />
@@ -331,7 +364,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                       id="functional-cookies"
                       type="checkbox"
                       checked={preferences.functional}
-                      onChange={(e) => { handlePreferenceChange('functional', e.target.checked); }}
+                      onChange={handleFunctionalChange}
                       className="rounded border-border-medium focus:ring-2 focus:ring-accent-blue focus:ring-offset-2"
                       aria-describedby="functional-description"
                     />
@@ -347,7 +380,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => { setShowDetails(false); }}
+                  onClick={toggleDetails}
                   className="order-2 sm:order-1"
                 >
                   Close Settings
@@ -376,32 +409,4 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
       </div>
     </>
   );
-};
-
-// Hook to manage cookie consent state
-export const useCookieConsent = () => {
-  const [consent, setConsent] = useState<CookiePreferences | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('valunds-cookie-consent');
-    if (stored) {
-      try {
-        setConsent(JSON.parse(stored));
-      } catch {
-        // Invalid stored data, clear it
-        localStorage.removeItem('valunds-cookie-consent');
-      }
-    }
-  }, []);
-
-  const clearConsent = () => {
-    localStorage.removeItem('valunds-cookie-consent');
-    setConsent(null);
-  };
-
-  return {
-    consent,
-    hasConsent: consent !== null,
-    clearConsent,
-  };
 };

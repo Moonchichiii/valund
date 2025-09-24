@@ -1,5 +1,4 @@
-﻿import type React from 'react';
-import { useState } from 'react';
+﻿import { type ChangeEvent, type FC, type FormEvent, useCallback, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useLogin } from '@/features/accounts/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
@@ -13,7 +12,7 @@ interface FormErrors {
   password?: string;
 }
 
-export const LoginPage = (): React.JSX.Element => {
+export const LoginPage: FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +21,7 @@ export const LoginPage = (): React.JSX.Element => {
 
   const loginMutation = useLogin();
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
 
     if (!email) {
@@ -39,42 +38,44 @@ export const LoginPage = (): React.JSX.Element => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [email, password]);
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = useCallback((e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    loginMutation.mutate({ email, password }, {
-      onSuccess: () => {
-        toast.success('Welcome back!');
-        void navigate({ to: '/dashboard' });
-      },
-      onError: (error: unknown) => {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to sign in. Please check your credentials.';
-        toast.error(errorMessage);
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: () => {
+          toast.success('Welcome back!');
+          void navigate({ to: '/dashboard' });
+        },
+        onError: (error: unknown) => {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Failed to sign in. Please check your credentials.';
+          toast.error(errorMessage);
+        }
       }
-    });
-  };
+    );
+  }, [email, password, loginMutation, navigate, validateForm]);
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
     setEmail(e.target.value);
-    if (errors.email) {
-      setErrors(prev => ({ ...prev, email: undefined }));
-    }
-  };
+    // Always clear email error on change to avoid reading from errors state
+    setErrors(prev => ({ ...prev, email: undefined }));
+  }, []);
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
     setPassword(e.target.value);
-    if (errors.password) {
-      setErrors(prev => ({ ...prev, password: undefined }));
-    }
-  };
+    // Always clear password error on change to avoid reading from errors state
+    setErrors(prev => ({ ...prev, password: undefined }));
+  }, []);
 
-  const togglePasswordVisibility = (): void => {
-    setShowPassword(!showPassword);
-  };
+  const togglePasswordVisibility = useCallback((): void => {
+    setShowPassword(prev => !prev);
+  }, []);
 
   return (
     <div className="min-h-screen bg-nordic-cream flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

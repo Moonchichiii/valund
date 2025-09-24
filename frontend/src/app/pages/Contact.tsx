@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { type JSX, useCallback, useState } from 'react';
 import { Briefcase, CheckCircle, Mail, MapPin, Phone, Send, Users } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
-import { Card, CardContent } from '@/shared/components/ui/Card';
+import { Card } from '@/shared/components/ui/Card';
 
-export const Contact = () => {
+export const Contact = (): JSX.Element => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,34 +14,38 @@ export const Contact = () => {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent): void => {
     e.preventDefault();
     // Handle form submission here
+    // eslint-disable-next-line no-console
     console.log('Form submitted:', formData);
     // You would typically send this to your backend
-  };
+  }, [formData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-  };
+  }, [formData]);
 
   const contactInfo = [
     {
+      id: 'email',
       icon: <Mail className="w-6 h-6" />,
       title: "Email",
       content: "hello@valunds.com",
       description: "We'll respond within 24 hours"
     },
     {
+      id: 'phone',
       icon: <Phone className="w-6 h-6" />,
       title: "Phone",
       content: "+46 8 123 456 78",
       description: "Mon-Fri, 9:00-17:00 CET"
     },
     {
+      id: 'location',
       icon: <MapPin className="w-6 h-6" />,
       title: "Headquarters",
       content: "Stockholm, Sweden",
@@ -51,16 +55,19 @@ export const Contact = () => {
 
   const reasons = [
     {
+      id: 'find-talent',
       icon: <Users className="w-8 h-8" />,
       title: "Find Nordic Talent",
       description: "Connect with verified professionals across Sweden, Norway, Denmark, and Finland."
     },
     {
+      id: 'join-professional',
       icon: <Briefcase className="w-8 h-8" />,
       title: "Join as Professional",
       description: "Become part of our exclusive network of Nordic digital craftspeople."
     },
     {
+      id: 'partnership',
       icon: <CheckCircle className="w-8 h-8" />,
       title: "Partnership Inquiries",
       description: "Explore collaboration opportunities and strategic partnerships."
@@ -188,8 +195,8 @@ export const Contact = () => {
               <Card>
                 <h3 className="text-xl font-semibold text-text-primary mb-6">Contact Information</h3>
                 <div className="space-y-6">
-                  {contactInfo.map((info, index) => (
-                    <div key={index} className="flex items-start gap-4">
+                  {contactInfo.map((info) => (
+                    <div key={info.id} className="flex items-start gap-4">
                       <div className="w-12 h-12 bg-nordic-warm rounded-nordic-lg flex items-center justify-center text-accent-blue flex-shrink-0">
                         {info.icon}
                       </div>
@@ -207,8 +214,8 @@ export const Contact = () => {
               <Card variant="warm">
                 <h3 className="text-xl font-semibold text-text-primary mb-6">Why Contact Us?</h3>
                 <div className="space-y-6">
-                  {reasons.map((reason, index) => (
-                    <div key={index} className="flex items-start gap-4">
+                  {reasons.map((reason) => (
+                    <div key={reason.id} className="flex items-start gap-4">
                       <div className="w-12 h-12 bg-nordic-white rounded-nordic-lg flex items-center justify-center text-accent-blue flex-shrink-0">
                         {reason.icon}
                       </div>

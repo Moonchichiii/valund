@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { MessageCircle, Users, ExternalLink } from 'lucide-react';
+import { ExternalLink, MessageCircle, Users } from 'lucide-react';
 
 export const Footer = (): React.JSX.Element => (
   <footer className="bg-nordic-white border-t border-border-light">

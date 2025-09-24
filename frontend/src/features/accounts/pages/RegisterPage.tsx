@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useCallback } from 'react';
+﻿import React, { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useRegister } from '@/features/accounts/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
@@ -42,7 +42,7 @@ export const RegisterPage = (): React.JSX.Element => {
 
   const registerMutation = useRegister();
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
 
     if (!formData.firstName.trim()) {
@@ -83,7 +83,7 @@ export const RegisterPage = (): React.JSX.Element => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
   const handleInputChange = useCallback((field: keyof FormData, value: string | boolean): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -93,26 +93,29 @@ export const RegisterPage = (): React.JSX.Element => {
     }
   }, [errors]);
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  const handleSubmit = useCallback((e: React.FormEvent): void => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    // Use async IIFE to handle the async logic properly
+    void (async (): Promise<void> => {
+      if (!validateForm()) return;
 
-    try {
-      await registerMutation.mutateAsync({
-        email: formData.email,
-        password: formData.password,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-      });
+      try {
+        await registerMutation.mutateAsync({
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+        });
 
-      toast.success('Welcome to Valunds! Your account has been created.');
-      void navigate({ to: '/dashboard' });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
-      toast.error(errorMessage);
-    }
-  };
+        toast.success('Welcome to Valunds! Your account has been created.');
+        void navigate({ to: '/dashboard' });
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
+        toast.error(errorMessage);
+      }
+    })();
+  }, [formData, registerMutation, navigate, validateForm]);
 
   const togglePasswordVisibility = useCallback((): void => {
     setShowPassword(!showPassword);
@@ -150,6 +153,7 @@ export const RegisterPage = (): React.JSX.Element => {
     handleInputChange('userType', 'client');
   }, [handleInputChange]);
 
+  // FIX 1: Include 'formData' in dependency array
   const passwordStrength = useMemo(() => {
     const { password } = formData;
     if (!password) return 0;
@@ -162,9 +166,7 @@ export const RegisterPage = (): React.JSX.Element => {
     if (/[!@#$%^&*]/.test(password)) strength++;
 
     return strength;
-  }, [formData.password]);
-
-  // Replace lines 170-406 in your RegisterPage.tsx with this:
+  }, [formData]); // Fixed: Include formData instead of just formData.password
 
   const strengthColors = ['bg-error-500', 'bg-error-500', 'bg-warning-500', 'bg-accent-blue', 'bg-success-500'];
   const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -212,7 +214,7 @@ export const RegisterPage = (): React.JSX.Element => {
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
                     : 'border-border-medium text-text-secondary hover:border-border-light'
                 }`}
-                aria-pressed={formData.userType === 'professional'}
+                aria-pressed={formData.userType === 'professional' ? 'true' : 'false'} // FIX 2: Convert boolean to string
                 aria-describedby="professional-description"
               >
                 <div className="font-medium">Professional</div>
@@ -228,7 +230,7 @@ export const RegisterPage = (): React.JSX.Element => {
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
                     : 'border-border-medium text-text-secondary hover:border-border-light'
                 }`}
-                aria-pressed={formData.userType === 'client'}
+                aria-pressed={formData.userType === 'client' ? 'true' : 'false'} // FIX 2: Convert boolean to string
                 aria-describedby="client-description"
               >
                 <div className="font-medium">Client</div>
@@ -242,7 +244,7 @@ export const RegisterPage = (): React.JSX.Element => {
 
         {/* Registration Form */}
         <Card className="bg-nordic-white">
-          <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6"> {/* FIX 3: Use handleSubmit directly */}
 
             <div className="grid grid-cols-2 gap-4">
               <Input

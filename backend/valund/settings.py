@@ -22,8 +22,8 @@ SECRET_KEY = config("SECRET_KEY", default="insecure-test-key-change-me")
 DEBUG = config("DEBUG", default=True, cast=bool)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
-# Testing mode detection - when pytest is running
 
+# Testing mode detection - when pytest is running
 TESTING = "pytest" in sys.modules or "test" in sys.argv
 
 
@@ -51,6 +51,8 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.github",
     "django_prometheus",
+    # PROD: If you add django-csp, uncomment the CSP block below in this file.
+    # "csp",
 ]
 
 LOCAL_APPS = [
@@ -68,17 +70,17 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 SITE_ID = 1
 
-# Allauth (updated to remove deprecated settings)
-# Replaces deprecated ACCOUNT_AUTHENTICATION_METHOD / ACCOUNT_EMAIL_REQUIRED usage.
+# Allauth (modern settings, keep username-less email login)
 ACCOUNT_LOGIN_METHODS = {"email"}  # Only email login (no username login form)
-ACCOUNT_SIGNUP_FIELDS = [  # Fields with * are required by allauth new schema style
+ACCOUNT_SIGNUP_FIELDS = [
     "email*",
     "password1*",
     "password2*",
 ]
-ACCOUNT_EMAIL_VERIFICATION = "optional"  # Could be 'mandatory' in production
+# Default: optional in dev; tighten in prod if desired.
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # PROD: consider "mandatory"
 SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = "none"  # We'll rely on primary account flow
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"  # rely on primary account flow
 LOGIN_REDIRECT_URL = "/"
 
 AUTHENTICATION_BACKENDS = [
@@ -207,14 +209,15 @@ if TESTING:
         "django.contrib.auth.hashers.MD5PasswordHasher",
     ]
 else:
-    # Secure password validation
+    # Secure password validation (strengthened)
     AUTH_PASSWORD_VALIDATORS = [
         {
             "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+            "OPTIONS": {"max_similarity": 0.7},
         },
         {
             "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-            "OPTIONS": {"min_length": 8},
+            "OPTIONS": {"min_length": 12},  # was 8
         },
         {
             "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -270,21 +273,92 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {"anon": "100/hour", "user": "1000/hour"},
 }
 
-# JWT Settings
+# Ultra-Secure JWT Configuration (merged & safe for dev)
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    # shorter access lifetime for security (you had 60m)
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    # crypto
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": "",
+    "AUDIENCE": None,
+    "ISSUER": "valunds.com",  # harmless in dev
+    "JSON_ENCODER": None,
+    "JWK_URL": None,
+    "LEEWAY": 0,
+    # header/claims
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+    # sliding (optional, present but not used unless you enable sliding views)
+    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=30),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+    # serializers (defaults shown explicitly)
+    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
 }
 
 # CORS settings
+# Keep local dev defaults; allow prod domains via env easily.
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:3000,http://127.0.0.1:3000",
+    # include local dev + (optionally) prod domains
+    default="http://localhost:3000,http://127.0.0.1:3000,https://valunds.com,https://www.valunds.com",
     cast=Csv(),
 )
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF trusted origins (safe in dev; used by Django when DEBUG=False too)
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="https://valunds.com,https://www.valunds.com",
+    cast=Csv(),
+)
+
+# Session Security (safe now; auto-hardens in prod)
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Security headers (safe to enable now)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+# Note: SECURE_BROWSER_XSS_FILTER is obsolete in modern browsers but harmless:
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = "DENY"
+
+# Extra security hardening that auto-enables in prod
+SECURE_SSL_REDIRECT = not DEBUG             # PROD: True when DEBUG=False
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0  # PROD: 1 year HSTS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True       # PROD: meaningful with HSTS
+SECURE_HSTS_PRELOAD = True                  # PROD: meaningful with HSTS
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+
+# (Optional) Permissions-Policy — Django doesn’t set this by default.
+# If you want this header, add a tiny custom middleware or use a package.
+SECURE_PERMISSIONS_POLICY = {
+    "geolocation": [],
+    "microphone": [],
+    "camera": [],
+    "payment": ["self"],
+    "usb": [],
+}
 
 # API Documentation
 SPECTACULAR_SETTINGS = {
@@ -293,6 +367,11 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+# Rate Limiting (django-ratelimit)
+RATELIMIT_ENABLE = True
+RATELIMIT_USE_CACHE = "default"
+# Example usage: @ratelimit(key="ip", rate="5/m", block=True) on login views
 
 # Stripe Configuration
 if TESTING:
@@ -322,11 +401,6 @@ if SENTRY_DSN and not TESTING:
         traces_sample_rate=0.1,
         send_default_pii=True,
     )
-
-# Security settings
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = "DENY"
 
 # Email configuration
 if TESTING:
@@ -391,3 +465,34 @@ else:
             },
         },
     }
+
+# --- Optional tightenings & prod-only switches ------------------------------
+
+# Login protection paths (compatible with your setup)
+LOGIN_URL = "/auth/login/"
+LOGIN_REDIRECT_URL = "/"           # keep as-is; change if you add /dashboard
+LOGOUT_REDIRECT_URL = "/"
+
+# Allauth stricter account policy (keep modern style, shown as comments)
+# PROD: enforce verification via ACCOUNT_EMAIL_VERIFICATION="mandatory" above
+# PROD: You already enforce email-only login with ACCOUNT_LOGIN_METHODS={"email"}
+
+# Content Security Policy (requires django-csp if you enable it)
+# if not DEBUG:
+#     CSP_DEFAULT_SRC = ("'self'",)
+#     CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "https://js.stripe.com")
+#     CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
+#     CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
+#     CSP_IMG_SRC = ("'self'", "data:", "https:")
+#     CSP_CONNECT_SRC = ("'self'", "https://api.stripe.com")
+#     CSP_FRAME_SRC = ("https://js.stripe.com",)
+
+# BankID Security (harmless in dev)
+BANKID_TEST_MODE = DEBUG
+BANKID_CERT_PATH = config("BANKID_CERT_PATH", default="")
+BANKID_KEY_PATH = config("BANKID_KEY_PATH", default="")
+BANKID_CA_CERT_PATH = config("BANKID_CA_CERT_PATH", default="")
+
+# Audit Logging (wire this into your logging or signals where needed)
+AUDIT_LOG_ENABLED = True
+AUDIT_LOG_SENSITIVE_FIELDS = ["password", "token", "secret"]

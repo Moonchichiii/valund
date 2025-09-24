@@ -1,29 +1,34 @@
 import { Link } from '@tanstack/react-router';
 import { CheckCircle, Clock, Heart, Shield, TrendingUp, Users } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
-import { Card, CardContent } from '@/shared/components/ui/Card';
+import { Card } from '@/shared/components/ui/Card';
+import type { JSX } from 'react';
 
-export const Professionals = () => {
+export const Professionals = (): JSX.Element => {
   const benefits = [
     {
+      id: 'premium-rates',
       icon: <TrendingUp className="w-8 h-8" />,
       title: "Premium Rates",
       description: "Earn competitive rates that reflect your Nordic expertise and quality standards.",
       color: "text-accent-blue"
     },
     {
+      id: 'quality-clients',
       icon: <Users className="w-8 h-8" />,
       title: "Quality Clients",
       description: "Work with established Nordic businesses that value craftsmanship and long-term partnerships.",
       color: "text-accent-green"
     },
     {
+      id: 'flexible-schedule',
       icon: <Clock className="w-8 h-8" />,
       title: "Flexible Schedule",
       description: "Maintain your work-life balance with flexible project arrangements and remote opportunities.",
       color: "text-accent-warm"
     },
     {
+      id: 'secure-payments',
       icon: <Shield className="w-8 h-8" />,
       title: "Secure Payments",
       description: "Get paid on time, every time, with our secure payment protection system.",
@@ -33,21 +38,25 @@ export const Professionals = () => {
 
   const steps = [
     {
+      id: 'create-profile',
       number: "01",
       title: "Create Your Profile",
       description: "Showcase your skills, experience, and Nordic craftsmanship philosophy."
     },
     {
+      id: 'get-verified',
       number: "02",
       title: "Get Verified",
       description: "Our team reviews your profile to ensure quality standards are met."
     },
     {
+      id: 'connect-clients',
       number: "03",
       title: "Connect with Clients",
       description: "Receive invitations from businesses seeking your specific expertise."
     },
     {
+      id: 'deliver-excellence',
       number: "04",
       title: "Deliver Excellence",
       description: "Complete projects and build lasting relationships with Nordic businesses."
@@ -101,8 +110,8 @@ export const Professionals = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="text-center group">
+            {benefits.map((benefit) => (
+              <div key={benefit.id} className="text-center group">
                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-nordic-lg bg-nordic-warm ${benefit.color} mb-6 group-hover:scale-110 transition-transform duration-200`}>
                   {benefit.icon}
                 </div>
@@ -126,7 +135,7 @@ export const Professionals = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
-              <Card key={index} className="text-center relative">
+              <Card key={step.id} className="text-center relative">
                 <div className="text-6xl font-bold text-border-light mb-4">{step.number}</div>
                 <h3 className="text-xl font-semibold text-text-primary mb-4">{step.title}</h3>
                 <p className="text-text-secondary leading-relaxed">{step.description}</p>

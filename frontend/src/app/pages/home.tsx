@@ -1,9 +1,10 @@
-﻿import { Link } from '@tanstack/react-router';
+﻿import type { JSX } from 'react';
+import { Link } from '@tanstack/react-router';
 import { Star } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 import { Card, CardContent, CardFooter } from '@/shared/components/ui/Card';
 
-export const Home = () => {
+export const Home = (): JSX.Element => {
   const professionals = [
     {
       category: "Frontend Developer",
@@ -71,8 +72,8 @@ export const Home = () => {
           <h2 className="text-3xl font-semibold text-text-primary mb-16 tracking-tight">Featured Professionals</h2>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {professionals.map((pro, index) => (
-              <Card key={index} className="group">
+            {professionals.map((pro) => (
+              <Card key={pro.name} className="group">
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-xs font-medium uppercase tracking-wider text-text-muted bg-nordic-warm px-3 py-1 rounded-full">
                     {pro.category}

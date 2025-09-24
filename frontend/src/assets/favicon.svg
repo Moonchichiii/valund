@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <title>Valunds - Pure Rune-Style V</title>
+  <desc>Minimal rune-inspired V inside a circle. Strokes are angular and geometric for modern SaaS use.</desc>
+  <g fill="none" stroke="#0A2540" stroke-width="28" stroke-linecap="round" stroke-linejoin="miter">
+    <!-- Outer circle emblem -->
+    <circle cx="256" cy="256" r="208"/>
+    <!-- Rune-style V -->
+    <!-- Left arm -->
+    <path d="M140 140 L256 372"/>
+    <!-- Right arm -->
+    <path d="M372 140 L256 372"/>
+    <!-- Optional notch segment (short inner cut to emphasize rune style) -->
+    <path d="M180 180 L256 310"/>
+    <path d="M332 180 L256 310"/>
+  </g>
+</svg>

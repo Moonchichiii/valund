@@ -28,8 +28,8 @@ export default function LoadSpinner({
 }: LoadSpinnerProps): React.JSX.Element {
 
   // Calculate dimensions using inline styles for better TypeScript compatibility
-  const spinnerSize = sizeRem.toString() + 'rem';
-  const circleSize = Math.max(sizeRem * 0.4, 0.75).toString() + 'rem';
+  const spinnerSize = `${sizeRem.toString()}rem`;
+  const circleSize = `${Math.max(sizeRem * 0.4, 0.75).toString()}rem`;
 
   const spinnerStyle: React.CSSProperties = {
     width: spinnerSize,

@@ -1,72 +1,144 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 
-export default defineConfig(({ mode }) => ({
-  plugins: [
-    react(),
-    tailwindcss(),
-  ],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const isDev = mode === 'development'
+  const isProd = mode === 'production'
 
-  resolve: {
-    alias: {
-      '@': '/src',
-      '@/api': '/src/api',
-      '@/app': '/src/app',
-      '@/features': '/src/features',
-      '@/shared': '/src/shared',
-      '@/assets': '/src/assets',
-    },
-  },
+  return {
+    plugins: [
+      react(),
+      tailwindcss(),
+    ],
 
-  build: {
-    target: 'esnext',
-    minify: 'esbuild',
-    cssMinify: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'tanstack-vendor': ['@tanstack/react-query', '@tanstack/react-router'],
-          'ui-vendor': ['@headlessui/react', '@heroicons/react'],
-          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'yup'],
-          'utils-vendor': ['axios', 'date-fns', 'clsx', 'tailwind-merge'],
-        },
+    resolve: {
+      alias: {
+        '@': '/src',
+        '@/api': '/src/api',
+        '@/app': '/src/app',
+        '@/features': '/src/features',
+        '@/shared': '/src/shared',
+        '@/assets': '/src/assets',
       },
     },
-    chunkSizeWarningLimit: 1000,
-  },
 
-  server: {
-    port: 5173,
-    host: true,
-    strictPort: true,
-    hmr: {
-      port: 5173,
+    // Optimized esbuild settings
+    esbuild: {
+      target: 'es2022',
+      ...(isProd && {
+        drop: ['console', 'debugger'],
+        legalComments: 'none',
+        minifyIdentifiers: true,
+        minifySyntax: true,
+        minifyWhitespace: true,
+      }),
     },
-  },
 
-  preview: {
-    port: 5173,
-    host: '0.0.0.0',
-    strictPort: true,
-  },
+    css: {
+      devSourcemap: isDev,
+    },
 
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      '@tanstack/react-query',
-      '@tanstack/react-router',
-      'axios',
-      'zustand',
-    ],
-    exclude: ['@tanstack/router-devtools'],
-  },
+    build: {
+      target: 'es2022',
+      minify: 'esbuild',
+      cssMinify: 'lightningcss',
+      sourcemap: isDev,
+      modulePreload: { polyfill: false },
+      reportCompressedSize: false,
+      assetsInlineLimit: 2048,
+      cssCodeSplit: true,
+      treeshake: true,
+      rollupOptions: {
+        output: {
+          // Smart vendor chunking for Vite 7.x
+          manualChunks: {
+            // Core React libraries
+            'react-core': ['react', 'react-dom'],
+            // TanStack ecosystem
+            'tanstack': ['@tanstack/react-query', '@tanstack/react-router'],
+            // UI libraries
+            'ui-libs': ['@headlessui/react', '@heroicons/react', 'lucide-react'],
+            // Form handling
+            'forms': ['react-hook-form', '@hookform/resolvers', 'yup'],
+            // Utilities
+            'utils': ['axios', 'date-fns', 'clsx', 'tailwind-merge', 'zustand'],
+          },
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: (assetInfo) => {
+            const info = assetInfo.name?.split('.') ?? [];
+            const ext = info[info.length - 1];
+            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+              return `assets/images/[name]-[hash][extname]`;
+            }
+            if (/woff2?|eot|ttf|otf/i.test(ext)) {
+              return `assets/fonts/[name]-[hash][extname]`;
+            }
+            return `assets/[name]-[hash][extname]`;
+          },
+        },
+      },
+      chunkSizeWarningLimit: 800,
+    },
 
-  envPrefix: 'VITE_',
+    server: {
+      host: true,
+      port: 5173,
+      strictPort: true,
+      open: false,
+      cors: true,
+      hmr: {
+        protocol: 'ws',
+        clientPort: 5173,
+        overlay: true,
+      },
+      watch: {
+        usePolling: false,
+        ignored: ['**/node_modules/**', '**/.git/**'],
+      },
+    },
 
-  define: {
-    __DEV__: JSON.stringify(mode === 'development'),
-  },
-}));
+    preview: {
+      host: '0.0.0.0',
+      port: 5173,
+      strictPort: true,
+      cors: true,
+    },
+
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        '@tanstack/react-query',
+        '@tanstack/react-router',
+        'axios',
+        'zustand',
+        'clsx',
+        'tailwind-merge',
+        'lucide-react',
+        'react-hot-toast',
+      ],
+      exclude: [
+        '@tanstack/router-devtools',
+        '@tanstack/react-query-devtools',
+      ],
+      esbuildOptions: {
+        target: 'es2022',
+      },
+    },
+
+    envPrefix: 'VITE_',
+
+    define: {
+      __DEV__: JSON.stringify(isDev),
+      __PROD__: JSON.stringify(isProd),
+      'process.env.NODE_ENV': JSON.stringify(mode),
+      // Valunds-specific environment variables
+      __APP_NAME__: JSON.stringify('Valunds'),
+      __APP_VERSION__: JSON.stringify(env.npm_package_version || '1.0.0'),
+    },
+  }
+})

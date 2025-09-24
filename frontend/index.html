@@ -1,13 +1,154 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+
+  <!-- Viewport and mobile optimization -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2c3e50" />
+  <meta name="color-scheme" content="light" />
+
+  <!-- Valunds Branding -->
+  <title>Valunds - Connect with Nordic Digital Craftspeople</title>
+  <meta name="description" content="Connect Nordic businesses with exceptional digital professionals who embody dedication to craft and excellence. Find skilled developers, designers, and digital experts." />
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Valunds - Nordic Digital Craftspeople" />
+  <meta property="og:description" content="Just as Völund forged legendary works with unmatched skill, Valunds connects Nordic businesses with exceptional digital professionals." />
+  <meta property="og:image" content="/og-image.png" />
+  <meta property="og:url" content="https://valunds.com" />
+  <meta property="og:site_name" content="Valunds" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Valunds - Nordic Digital Craftspeople" />
+  <meta name="twitter:description" content="Connect with master craftspeople of the digital age" />
+  <meta name="twitter:image" content="/twitter-image.png" />
+
+  <!-- Favicons and Icons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- Performance and Security -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="dns-prefetch" href="https://api.valunds.com" />
+
+  <!-- Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Valunds",
+    "description": "Connecting Nordic businesses with exceptional digital professionals",
+    "url": "https://valunds.com",
+    "logo": "https://valunds.com/logo.png",
+    "sameAs": [
+      "https://linkedin.com/company/valunds",
+      "https://twitter.com/valunds"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "url": "https://valunds.com/contact"
+    }
+  }
+  </script>
+
+  <!-- Prevent flash of unstyled content -->
+  <style>
+    /* Critical CSS - Nordic theme colors */
+    :root {
+      --nordic-cream: #f7f6f4;
+      --text-primary: #1a1a1a;
+      --accent-primary: #2c3e50;
+    }
+
+    /* Prevent FOUC */
+    html {
+      background-color: var(--nordic-cream);
+      color: var(--text-primary);
+    }
+
+    /* Loading spinner styles */
+    .loading-container {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background-color: var(--nordic-cream);
+      z-index: 9999;
+    }
+
+    .loading-spinner {
+      width: 3rem;
+      height: 3rem;
+      position: relative;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-dot {
+      position: absolute;
+      width: 0.75rem;
+      height: 0.75rem;
+      background-color: var(--accent-primary);
+      border-radius: 50%;
+      opacity: 0.9;
+    }
+
+    .loading-dot:nth-child(1) { top: 0; left: 0; }
+    .loading-dot:nth-child(2) { top: 0; right: 0; }
+    .loading-dot:nth-child(3) { bottom: 0; left: 0; }
+    .loading-dot:nth-child(4) { bottom: 0; right: 0; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Hide loading when app loads */
+    .app-loaded .loading-container {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loading-container" id="loading-screen">
+    <div class="loading-spinner">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+  </div>
+
+  <!-- App Root -->
+  <div id="root"></div>
+
+  <!-- Analytics placeholder -->
+  <!-- Add your analytics script here when ready -->
+
+  <!-- Main App Script -->
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Remove loading screen when app loads -->
+  <script>
+    // Hide loading screen when React app is ready
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          loadingScreen.style.opacity = '0';
+          loadingScreen.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => {
+            document.body.classList.add('app-loaded');
+          }, 300);
+        }
+      }, 100);
+    });
+  </script>
+</body>
 </html>

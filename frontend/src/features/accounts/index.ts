@@ -1,14 +1,9 @@
-﻿// Components
-export { LoginForm } from './components/LoginForm'
-export { RegisterForm } from './components/RegisterForm'
-
-// Pages
+﻿// Pages
 export { LoginPage } from './pages/LoginPage'
 export { RegisterPage } from './pages/RegisterPage'
 
 // Hooks
 export {
-  useAuth,
   useUser,
   useLogin,
   useRegister,

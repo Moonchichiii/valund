@@ -24,7 +24,7 @@ export default tseslint.config([
         project: './tsconfig.app.json',
         tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: {
-          jsx: true  // THIS WAS MISSING - CRITICAL FIX
+          jsx: true
         }
       },
     },
@@ -35,7 +35,6 @@ export default tseslint.config([
       'jsx-a11y': jsxA11y,
     },
     rules: {
-      // TypeScript strict rules
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
@@ -56,10 +55,9 @@ export default tseslint.config([
         disallowTypeAnnotations: false
       }],
 
-      // React strict rules
-      'react/jsx-uses-react': 'off', // React 17+
-      'react/react-in-jsx-scope': 'off', // React 17+
-      'react/prop-types': 'off', // We use TypeScript
+      'react/jsx-uses-react': 'off',
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
       'react/jsx-props-no-spreading': 'warn',
       'react/jsx-key': 'error',
       'react/jsx-no-duplicate-props': 'error',
@@ -73,11 +71,9 @@ export default tseslint.config([
       'react/self-closing-comp': 'error',
       'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
 
-      // React Hooks strict rules
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
 
-      // Accessibility rules (strict)
       'jsx-a11y/alt-text': 'error',
       'jsx-a11y/anchor-has-content': 'error',
       'jsx-a11y/click-events-have-key-events': 'error',
@@ -87,7 +83,6 @@ export default tseslint.config([
       'jsx-a11y/aria-proptypes': 'error',
       'jsx-a11y/aria-unsupported-elements': 'error',
 
-      // Code quality rules
       'no-console': 'warn',
       'no-debugger': 'error',
       'no-alert': 'error',
@@ -100,7 +95,6 @@ export default tseslint.config([
       'template-curly-spacing': 'error',
       'no-useless-concat': 'error',
 
-      // Import/Export rules
       'no-duplicate-imports': 'error',
       'sort-imports': ['error', {
         ignoreCase: true,
@@ -108,7 +102,6 @@ export default tseslint.config([
         ignoreMemberSort: false,
       }],
 
-      // Naming conventions
       '@typescript-eslint/naming-convention': [
         'error',
         {
@@ -130,16 +123,13 @@ export default tseslint.config([
         }
       ],
 
-      // Performance rules
       'react/jsx-no-bind': 'warn',
       'react/jsx-no-constructed-context-values': 'error',
 
-      // Security rules
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'no-script-url': 'error',
 
-      // React Refresh
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true }
@@ -149,6 +139,22 @@ export default tseslint.config([
       react: {
         version: 'detect'
       }
+    }
+  },
+
+  {
+    files: ['**/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react/jsx-props-no-spreading': 'off',
+      'react/jsx-no-bind': 'off'
+    }
+  },
+
+  {
+    files: ['**/*.config.{ts,js}', '**/vite.config.ts', '**/*.test.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      'no-console': 'off'
     }
   }
 ]);

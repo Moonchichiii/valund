@@ -1,9 +1,10 @@
 import React from 'react';
 import { clsx } from 'clsx';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+// Fix the interface conflict by omitting the HTML 'size' attribute
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   variant?: 'default' | 'filled' | 'outlined';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg'; // Now this won't conflict with HTML size attribute
   label?: string;
   error?: string;
   helper?: string;
