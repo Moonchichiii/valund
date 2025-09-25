@@ -5,7 +5,6 @@ import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 
 interface FormErrors {
   email?: string;
@@ -45,31 +44,25 @@ export const LoginPage: FC = () => {
 
     if (!validateForm()) return;
 
+    // Remove duplicate toast handling - useLogin hook handles this
     loginMutation.mutate(
       { email, password },
       {
         onSuccess: () => {
-          toast.success('Welcome back!');
           void navigate({ to: '/dashboard' });
         },
-        onError: (error: unknown) => {
-          const errorMessage =
-            error instanceof Error ? error.message : 'Failed to sign in. Please check your credentials.';
-          toast.error(errorMessage);
-        }
+        // onError is handled by the hook
       }
     );
   }, [email, password, loginMutation, navigate, validateForm]);
 
   const handleEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
     setEmail(e.target.value);
-    // Always clear email error on change to avoid reading from errors state
     setErrors(prev => ({ ...prev, email: undefined }));
   }, []);
 
   const handlePasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
     setPassword(e.target.value);
-    // Always clear password error on change to avoid reading from errors state
     setErrors(prev => ({ ...prev, password: undefined }));
   }, []);
 
@@ -185,12 +178,12 @@ export const LoginPage: FC = () => {
           <div className="mt-6 text-center">
             <p className="text-text-secondary">
               Don't have an account?{' '}
-              <a
-                href="/register"
+              <Link
+                to="/register"
                 className="text-accent-blue hover:text-accent-primary font-medium transition-colors"
               >
                 Create one here
-              </a>
+              </Link>
             </p>
           </div>
 

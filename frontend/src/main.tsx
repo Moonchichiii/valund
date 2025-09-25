@@ -1,10 +1,19 @@
-import { StrictMode } from 'react';
+// main.tsx
+import { StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
+import { authApi } from '@/api/auth';
 
+// --- Prime CSRF once on app mount (safe 204 no-op if already set) ---
+function CsrfBootstrap() {
+  useEffect(() => {
+    void authApi.getCsrfToken();
+  }, []);
+  return null;
+}
 
 interface ApiError {
   response?: {
@@ -43,7 +52,6 @@ const queryClient = new QueryClient({
 });
 
 const container = document.getElementById('root');
-
 if (!container) {
   throw new Error('Root element not found');
 }
@@ -53,7 +61,11 @@ const root = createRoot(container);
 root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
+      {/* Ensure CSRF cookie exists before any mutations */}
+      <CsrfBootstrap />
+
       <App />
+
       <Toaster
         position="top-right"
         toastOptions={{
@@ -66,6 +78,7 @@ root.render(
           }
         }}
       />
+
       {import.meta.env.DEV && (
         <ReactQueryDevtools
           initialIsOpen={false}

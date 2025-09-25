@@ -95,6 +95,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "valund.middleware.EnsureCSRFCookieOnSafeMethodsMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "allauth.account.middleware.AccountMiddleware",
@@ -315,7 +316,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
     # include local dev + (optionally) prod domains
-    default="http://localhost:3000,http://127.0.0.1:3000,https://valunds.com,https://www.valunds.com",
+    default="http://localhost:5173,http://127.0.0.1:5173,https://valunds.se,https://www.valunds.se",
     cast=Csv(),
 )
 CORS_ALLOW_CREDENTIALS = True
@@ -323,7 +324,7 @@ CORS_ALLOW_CREDENTIALS = True
 # CSRF trusted origins (safe in dev; used by Django when DEBUG=False too)
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
-    default="https://valunds.com,https://www.valunds.com",
+     default="http://localhost:5173,http://127.0.0.1:5173,https://valunds.se,https://www.valunds.se",
     cast=Csv(),
 )
 

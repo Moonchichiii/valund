@@ -1,11 +1,10 @@
 ﻿import React, { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useRegister } from '@/features/accounts/hooks/useAuth';
+import { useRegister, usePasswordStrength } from '@/features/accounts/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 
 interface FormData {
   firstName: string;
@@ -14,7 +13,7 @@ interface FormData {
   password: string;
   confirmPassword: string;
   acceptTerms: boolean;
-  userType: 'professional' | 'client';
+  userType: 'freelancer' | 'client'; // Updated to match backend enum
 }
 
 interface FormErrors {
@@ -36,11 +35,14 @@ export const RegisterPage = (): React.JSX.Element => {
     password: '',
     confirmPassword: '',
     acceptTerms: false,
-    userType: 'professional',
+    userType: 'freelancer', // Updated to match backend
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
   const registerMutation = useRegister();
+
+  // Use the password strength hook
+  const passwordStrength = usePasswordStrength(formData.password);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -65,10 +67,10 @@ export const RegisterPage = (): React.JSX.Element => {
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, and number';
+    } else if (formData.password.length < 12) { // Updated to match backend requirement
+      newErrors.password = 'Password must be at least 12 characters';
+    } else if (passwordStrength.score < 3) {
+      newErrors.password = 'Password is too weak. Please choose a stronger password.';
     }
 
     if (!formData.confirmPassword) {
@@ -83,11 +85,10 @@ export const RegisterPage = (): React.JSX.Element => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, passwordStrength]);
 
   const handleInputChange = useCallback((field: keyof FormData, value: string | boolean): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -96,25 +97,29 @@ export const RegisterPage = (): React.JSX.Element => {
   const handleSubmit = useCallback((e: React.FormEvent): void => {
     e.preventDefault();
 
-    // Use async IIFE to handle the async logic properly
-    void (async (): Promise<void> => {
-      if (!validateForm()) return;
+    if (!validateForm()) return;
 
-      try {
-        await registerMutation.mutateAsync({
-          email: formData.email,
-          password: formData.password,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-        });
-
-        toast.success('Welcome to Valunds! Your account has been created.');
-        void navigate({ to: '/dashboard' });
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to create account. Please try again.';
-        toast.error(errorMessage);
+    // Complete registration payload matching backend serializer requirements
+    registerMutation.mutate(
+      {
+        email: formData.email,
+        password: formData.password,
+        password_confirm: formData.confirmPassword,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        user_type: formData.userType,
+        username: formData.email,
+        terms_accepted: true,
+        privacy_policy_accepted: true,
+        marketing_consent: false,
+        analytics_consent: false,
+      },
+      {
+        onSuccess: () => {
+          void navigate({ to: '/dashboard' });
+        },
       }
-    })();
+    );
   }, [formData, registerMutation, navigate, validateForm]);
 
   const togglePasswordVisibility = useCallback((): void => {
@@ -145,28 +150,13 @@ export const RegisterPage = (): React.JSX.Element => {
     handleInputChange('acceptTerms', e.target.checked);
   }, [handleInputChange]);
 
-  const selectProfessional = useCallback((): void => {
-    handleInputChange('userType', 'professional');
+  const selectFreelancer = useCallback((): void => {
+    handleInputChange('userType', 'freelancer');
   }, [handleInputChange]);
 
   const selectClient = useCallback((): void => {
     handleInputChange('userType', 'client');
   }, [handleInputChange]);
-
-  // FIX 1: Include 'formData' in dependency array
-  const passwordStrength = useMemo(() => {
-    const { password } = formData;
-    if (!password) return 0;
-
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
-    if (/[!@#$%^&*]/.test(password)) strength++;
-
-    return strength;
-  }, [formData]); // Fixed: Include formData instead of just formData.password
 
   const strengthColors = ['bg-error-500', 'bg-error-500', 'bg-warning-500', 'bg-accent-blue', 'bg-success-500'];
   const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -208,17 +198,17 @@ export const RegisterPage = (): React.JSX.Element => {
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={selectProfessional}
+                onClick={selectFreelancer}
                 className={`p-4 border-2 rounded-nordic-lg text-center transition-all ${
-                  formData.userType === 'professional'
+                  formData.userType === 'freelancer'
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
                     : 'border-border-medium text-text-secondary hover:border-border-light'
                 }`}
-                aria-pressed={formData.userType === 'professional' ? 'true' : 'false'} // FIX 2: Convert boolean to string
-                aria-describedby="professional-description"
+                aria-pressed={formData.userType === 'freelancer' ? 'true' : 'false'}
+                aria-describedby="freelancer-description"
               >
                 <div className="font-medium">Professional</div>
-                <div className="text-xs mt-1" id="professional-description">
+                <div className="text-xs mt-1" id="freelancer-description">
                   Looking for projects
                 </div>
               </button>
@@ -230,7 +220,7 @@ export const RegisterPage = (): React.JSX.Element => {
                     ? 'border-accent-blue bg-accent-blue/5 text-accent-blue'
                     : 'border-border-medium text-text-secondary hover:border-border-light'
                 }`}
-                aria-pressed={formData.userType === 'client' ? 'true' : 'false'} // FIX 2: Convert boolean to string
+                aria-pressed={formData.userType === 'client' ? 'true' : 'false'}
                 aria-describedby="client-description"
               >
                 <div className="font-medium">Client</div>
@@ -244,7 +234,7 @@ export const RegisterPage = (): React.JSX.Element => {
 
         {/* Registration Form */}
         <Card className="bg-nordic-white">
-          <form onSubmit={handleSubmit} className="space-y-6"> {/* FIX 3: Use handleSubmit directly */}
+          <form onSubmit={handleSubmit} className="space-y-6">
 
             <div className="grid grid-cols-2 gap-4">
               <Input
@@ -285,7 +275,7 @@ export const RegisterPage = (): React.JSX.Element => {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handlePasswordChange}
-                  placeholder="Create a strong password"
+                  placeholder="Create a strong password (min 12 characters)"
                   error={errors.password}
                   required
                   autoComplete="new-password"
@@ -314,15 +304,22 @@ export const RegisterPage = (): React.JSX.Element => {
                       <div
                         key={level}
                         className={`h-1 flex-1 rounded-full transition-colors ${
-                          level < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-border-light'
+                          level < passwordStrength.score ? strengthColors[passwordStrength.score - 1] : 'bg-border-light'
                         }`}
                         aria-hidden="true"
                       />
                     ))}
                   </div>
                   <p className="text-xs text-text-muted" id="password-strength-label">
-                    Password strength: {strengthLabels[passwordStrength - 1] ?? 'Enter a password'}
+                    Password strength: {strengthLabels[passwordStrength.score - 1] ?? 'Enter a password'}
                   </p>
+                  {passwordStrength.feedback.length > 0 && (
+                    <ul className="text-xs text-text-muted space-y-1">
+                      {passwordStrength.feedback.map((feedback) => (
+                        <li key={feedback}>• {feedback}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
             </div>

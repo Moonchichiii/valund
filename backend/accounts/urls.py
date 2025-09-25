@@ -1,8 +1,7 @@
 """
 URL configuration for accounts app.
-- Keeps current /auth/* endpoints you added.
-- Keeps legacy SimpleJWT endpoints for compatibility.
-- Optionally registers advanced views if they exist (email verify, reset, logs).
+- Removes double auth/ prefix since main urls.py already includes "api/auth/"
+- Clean endpoints that match frontend expectations
 """
 
 from django.urls import include, path
@@ -13,7 +12,6 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-# Your “balanced” views (already in your codebase)
 from .views import (
     ChangePasswordView,
     LoginView,
@@ -23,7 +21,6 @@ from .views import (
     UserSessionsView,
 )
 
-# Optional/advanced views — import guarded so URLs appear only if you implement them
 ADVANCED_URLS = []
 router = DefaultRouter()
 
@@ -63,23 +60,17 @@ except Exception:
 app_name = "accounts"
 
 urlpatterns = [
-    # ---------- Recommended scoped endpoints ----------
-    path("auth/login/", LoginView.as_view(), name="auth-login"),
-    path("auth/register/", RegisterView.as_view(), name="auth-register"),
-    path("auth/me/", MeView.as_view(), name="auth-me"),
-    path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
-    path("auth/change-password/", ChangePasswordView.as_view(), name="auth-change-password"),
-    path("auth/sessions/", UserSessionsView.as_view(), name="auth-sessions"),
-    path("auth/sessions/<int:session_id>/", UserSessionsView.as_view(), name="auth-session-delete"),
+    path("login/", LoginView.as_view(), name="login"),
+    path("register/", RegisterView.as_view(), name="register"),
+    path("me/", MeView.as_view(), name="me"),
+    path("logout/", LogoutView.as_view(), name="logout"),
+    path("change-password/", ChangePasswordView.as_view(), name="change-password"),
+    path("sessions/", UserSessionsView.as_view(), name="sessions"),
+    path("sessions/<int:session_id>/", UserSessionsView.as_view(), name="session-delete"),
+    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    ]
 
-    # ---------- Legacy SimpleJWT (keep for compatibility / tooling) ----------
-    path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("verify/", TokenVerifyView.as_view(), name="token_verify"),
-]
-
-# Plug in advanced URLs if those views exist
 urlpatterns += ADVANCED_URLS
-
-# Router (security logs) if viewset exists
 urlpatterns += [path("", include(router.urls))]

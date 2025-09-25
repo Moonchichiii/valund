@@ -1,12 +1,16 @@
-import React from 'react';
-import { Outlet, redirect } from '@tanstack/react-router';
+import React, { useEffect } from 'react';
+import { Outlet, useRouter } from '@tanstack/react-router';
 import { useAuthStatus } from '@/features/accounts/hooks/useAuth';
-import { DashboardLayout } from '@/app/layouts/DashboardLayout';
-
 
 export const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuthStatus();
+  const router = useRouter();
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      void router.navigate({ to: '/login' });
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -19,18 +23,9 @@ export const ProtectedRoute: React.FC = () => {
     );
   }
 
-
   if (!isAuthenticated) {
-    const redirectResult = redirect({ to: '/login' });
-    const redirectError = Object.assign(new Error('Authentication required'), redirectResult);
-    redirectError.name = 'RedirectError';
-    throw redirectError;
+    return null;
   }
 
-
-  return (
-    <DashboardLayout>
-      <Outlet />
-    </DashboardLayout>
-  );
+  return <Outlet />;
 };

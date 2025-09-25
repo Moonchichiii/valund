@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { type ReactNode } from "react";
 import {
   Bell,
   Briefcase,
@@ -11,26 +11,31 @@ import {
   Settings,
   TrendingUp,
   User,
-  Users
-} from 'lucide-react';
+  Users,
+} from "lucide-react";
+import { useAuthStatus } from "@/features/accounts/hooks/useAuth";
 
-// Mock user types - in real app this would come from auth/context
-type UserType = 'professional' | 'company';
+// —— Types ——
+export type UserType = "freelancer" | "client" | "admin";
+
+type Trend = "up" | "down" | "neutral";
+
+type Status = "active" | "pending" | "completed" | "paused" | "closed";
 
 interface Stat {
   id: string;
   label: string;
   value: string;
   change?: string;
-  trend?: 'up' | 'down' | 'neutral';
+  trend?: Trend;
 }
 
 interface RecentActivity {
   id: string;
   title: string;
   time: string;
-  type: 'message' | 'application' | 'interview' | 'payment' | 'profile';
-  status?: 'success' | 'pending' | 'warning';
+  type: "message" | "application" | "interview" | "payment" | "profile";
+  status?: "success" | "pending" | "warning";
 }
 
 interface Project {
@@ -38,7 +43,7 @@ interface Project {
   title: string;
   company: string;
   rate: string;
-  status: 'active' | 'pending' | 'completed';
+  status: Extract<Status, "active" | "pending" | "completed">;
   deadline: string;
   progress?: number;
 }
@@ -48,15 +53,51 @@ interface JobPosting {
   title: string;
   applications: number;
   views: number;
-  status: 'active' | 'paused' | 'closed';
+  status: Extract<Status, "active" | "paused" | "closed">;
   posted: string;
 }
 
-const Dashboard = (): React.JSX.Element => {
-  // Mock user type - in real app this would come from authentication context
-  const [userType] = useState<UserType>('professional'); // Change to 'company' to see company dashboard
+// minimal user shape we actually read in this component
+interface AuthUser {
+  user_type?: UserType | null;
+  first_name?: string | null;
+  username: string;
+}
 
-  // Professional Dashboard Data
+// —— Component ——
+const Dashboard = (): JSX.Element => {
+  const { user, isLoading, isAuthenticated } = useAuthStatus<{
+    user: AuthUser | null;
+    isLoading: boolean;
+    isAuthenticated: boolean;
+  }>();
+
+  // Loading UI
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f7f6f4] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-accent-blue border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[#666666]">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Logged out UI
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-[#f7f6f4] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[#666666]">Please log in to access your dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const userType: UserType = user.user_type ?? "freelancer";
+
+  // —— Demo data (replace with API data when wired) ——
   const professionalStats: Stat[] = [
     { id: "1", label: "Active Projects", value: "3", change: "+1", trend: "up" },
     { id: "2", label: "This Month Earnings", value: "€4,250", change: "+12%", trend: "up" },
@@ -79,7 +120,7 @@ const Dashboard = (): React.JSX.Element => {
       rate: "€85/hour",
       status: "active",
       deadline: "Dec 15, 2024",
-      progress: 75
+      progress: 75,
     },
     {
       id: "2",
@@ -88,7 +129,7 @@ const Dashboard = (): React.JSX.Element => {
       rate: "€90/hour",
       status: "active",
       deadline: "Jan 20, 2025",
-      progress: 45
+      progress: 45,
     },
     {
       id: "3",
@@ -97,11 +138,10 @@ const Dashboard = (): React.JSX.Element => {
       rate: "€80/hour",
       status: "pending",
       deadline: "Feb 10, 2025",
-      progress: 0
-    }
+      progress: 0,
+    },
   ];
 
-  // Company Dashboard Data
   const companyStats: Stat[] = [
     { id: "1", label: "Active Job Posts", value: "5", change: "+2", trend: "up" },
     { id: "2", label: "Applications Received", value: "47", change: "+15", trend: "up" },
@@ -117,65 +157,76 @@ const Dashboard = (): React.JSX.Element => {
   ];
 
   const jobPostings: JobPosting[] = [
-    {
-      id: "1",
-      title: "Senior Frontend Developer",
-      applications: 12,
-      views: 89,
-      status: "active",
-      posted: "3 days ago"
-    },
-    {
-      id: "2",
-      title: "UX/UI Designer",
-      applications: 8,
-      views: 67,
-      status: "active",
-      posted: "1 week ago"
-    },
-    {
-      id: "3",
-      title: "Full Stack Developer",
-      applications: 15,
-      views: 134,
-      status: "paused",
-      posted: "2 weeks ago"
-    }
+    { id: "1", title: "Senior Frontend Developer", applications: 12, views: 89, status: "active", posted: "3 days ago" },
+    { id: "2", title: "UX/UI Designer", applications: 8, views: 67, status: "active", posted: "1 week ago" },
+    { id: "3", title: "Full Stack Developer", applications: 15, views: 134, status: "paused", posted: "2 weeks ago" },
   ];
 
-  const getStatusColor = (status: string): string => {
+  // —— Helpers ——
+  const getStatusColor = (status: Status): string => {
     switch (status) {
-      case 'active': return 'text-[#7ba05b] bg-[#7ba05b]/10';
-      case 'pending': return 'text-[#c8956d] bg-[#c8956d]/10';
-      case 'completed': return 'text-[#4a90a4] bg-[#4a90a4]/10';
-      case 'paused': return 'text-[#999999] bg-[#999999]/10';
-      case 'closed': return 'text-[#666666] bg-[#666666]/10';
-      default: return 'text-[#666666] bg-[#f4f3f0]';
+      case "active":
+        return "text-[#7ba05b] bg-[#7ba05b]/10";
+      case "pending":
+        return "text-[#c8956d] bg-[#c8956d]/10";
+      case "completed":
+        return "text-[#4a90a4] bg-[#4a90a4]/10";
+      case "paused":
+        return "text-[#999999] bg-[#999999]/10";
+      case "closed":
+        return "text-[#666666] bg-[#666666]/10";
+      default:
+        return "text-[#666666] bg-[#f4f3f0]";
     }
   };
 
-  const getTrendIcon = (trend?: 'up' | 'down' | 'neutral'): React.JSX.Element | null => {
-    if (trend === 'up') return <TrendingUp className="w-3 h-3 text-[#7ba05b]" />;
-    if (trend === 'down') return <TrendingUp className="w-3 h-3 text-[#c8956d] rotate-180" />;
+  const getTrendIcon = (trend?: Trend): ReactNode => {
+    if (trend === "up") return <TrendingUp className="w-3 h-3 text-[#7ba05b]" />;
+    if (trend === "down") return <TrendingUp className="w-3 h-3 text-[#c8956d] rotate-180" />;
     return null;
   };
 
-  const renderProfessionalDashboard = (): React.JSX.Element => (
+  const getUserTypeDisplayName = (type: UserType): string => {
+    switch (type) {
+      case "freelancer":
+        return "Professional";
+      case "client":
+        return "Company";
+      case "admin":
+        return "Administrator";
+      default:
+        return "User";
+    }
+  };
+
+  // —— Sub-views ——
+  const renderProfessionalDashboard = (): JSX.Element => (
     <div className="space-y-8">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {professionalStats.map((stat) => (
-          <div key={stat.id} className="bg-[#ffffff] border border-[#e8e6e3] rounded-3xl p-6 hover:shadow-lg transition-all duration-200">
+          <div
+            key={stat.id}
+            className="bg-[#ffffff] border border-[#e8e6e3] rounded-3xl p-6 hover:shadow-lg transition-all duration-200"
+          >
             <div className="flex items-center justify-between mb-2">
               <div className="text-2xl font-semibold text-[#1a1a1a]">{stat.value}</div>
               {getTrendIcon(stat.trend)}
             </div>
             <div className="text-sm text-[#666666] mb-1">{stat.label}</div>
-            {stat.change && (
-              <div className={`text-xs ${stat.trend === 'up' ? 'text-[#7ba05b]' : stat.trend === 'down' ? 'text-[#c8956d]' : 'text-[#666666]'}`}>
+            {stat.change ? (
+              <div
+                className={`text-xs ${
+                  stat.trend === "up"
+                    ? "text-[#7ba05b]"
+                    : stat.trend === "down"
+                    ? "text-[#c8956d]"
+                    : "text-[#666666]"
+                }`}
+              >
                 {stat.change}
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </div>
@@ -205,11 +256,13 @@ const Dashboard = (): React.JSX.Element => {
                       </span>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}
+                  >
                     {project.status}
                   </span>
                 </div>
-                {project.progress !== undefined && project.progress > 0 && (
+                {typeof project.progress === "number" && project.progress > 0 ? (
                   <div className="mb-3">
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-[#666666]">Progress</span>
@@ -218,11 +271,11 @@ const Dashboard = (): React.JSX.Element => {
                     <div className="w-full bg-[#f4f3f0] rounded-full h-2">
                       <div
                         className="bg-[#4a90a4] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${String(project.progress)}%` }}
+                        style={{ width: `${project.progress}%` }}
                       />
                     </div>
                   </div>
-                )}
+                ) : null}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#666666] flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
@@ -241,17 +294,22 @@ const Dashboard = (): React.JSX.Element => {
           <div className="space-y-4">
             {professionalActivity.map((item) => (
               <div key={item.id} className="flex items-start gap-3 pb-4 border-b border-[#f4f3f0] last:border-b-0">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  item.type === 'message' ? 'bg-[#4a90a4]/10 text-[#4a90a4]' :
-                  item.type === 'payment' ? 'bg-[#7ba05b]/10 text-[#7ba05b]' :
-                  item.type === 'interview' ? 'bg-[#c8956d]/10 text-[#c8956d]' :
-                  'bg-[#f4f3f0] text-[#666666]'
-                }`}>
-                  {item.type === 'message' && <MessageSquare className="w-4 h-4" />}
-                  {item.type === 'payment' && <DollarSign className="w-4 h-4" />}
-                  {item.type === 'interview' && <Calendar className="w-4 h-4" />}
-                  {item.type === 'application' && <CheckCircle className="w-4 h-4" />}
-                  {item.type === 'profile' && <User className="w-4 h-4" />}
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    item.type === "message"
+                      ? "bg-[#4a90a4]/10 text-[#4a90a4]"
+                      : item.type === "payment"
+                      ? "bg-[#7ba05b]/10 text-[#7ba05b]"
+                      : item.type === "interview"
+                      ? "bg-[#c8956d]/10 text-[#c8956d]"
+                      : "bg-[#f4f3f0] text-[#666666]"
+                  }`}
+                >
+                  {item.type === "message" && <MessageSquare className="w-4 h-4" />}
+                  {item.type === "payment" && <DollarSign className="w-4 h-4" />}
+                  {item.type === "interview" && <Calendar className="w-4 h-4" />}
+                  {item.type === "application" && <CheckCircle className="w-4 h-4" />}
+                  {item.type === "profile" && <User className="w-4 h-4" />}
                 </div>
                 <div className="flex-1">
                   <div className="text-sm text-[#1a1a1a] mb-1">{item.title}</div>
@@ -265,22 +323,33 @@ const Dashboard = (): React.JSX.Element => {
     </div>
   );
 
-  const renderCompanyDashboard = (): React.JSX.Element => (
+  const renderCompanyDashboard = (): JSX.Element => (
     <div className="space-y-8">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {companyStats.map((stat) => (
-          <div key={stat.id} className="bg-[#ffffff] border border-[#e8e6e3] rounded-3xl p-6 hover:shadow-lg transition-all duration-200">
+          <div
+            key={stat.id}
+            className="bg-[#ffffff] border border-[#e8e6e3] rounded-3xl p-6 hover:shadow-lg transition-all duration-200"
+          >
             <div className="flex items-center justify-between mb-2">
               <div className="text-2xl font-semibold text-[#1a1a1a]">{stat.value}</div>
               {getTrendIcon(stat.trend)}
             </div>
             <div className="text-sm text-[#666666] mb-1">{stat.label}</div>
-            {stat.change && (
-              <div className={`text-xs ${stat.trend === 'up' ? 'text-[#7ba05b]' : stat.trend === 'down' ? 'text-[#c8956d]' : 'text-[#666666]'}`}>
+            {stat.change ? (
+              <div
+                className={`text-xs ${
+                  stat.trend === "up"
+                    ? "text-[#7ba05b]"
+                    : stat.trend === "down"
+                    ? "text-[#c8956d]"
+                    : "text-[#666666]"
+                }`}
+              >
                 {stat.change}
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </div>
@@ -332,16 +401,21 @@ const Dashboard = (): React.JSX.Element => {
           <div className="space-y-4">
             {companyActivity.map((item) => (
               <div key={item.id} className="flex items-start gap-3 pb-4 border-b border-[#f4f3f0] last:border-b-0">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  item.type === 'application' ? 'bg-[#4a90a4]/10 text-[#4a90a4]' :
-                  item.type === 'payment' ? 'bg-[#7ba05b]/10 text-[#7ba05b]' :
-                  item.type === 'interview' ? 'bg-[#c8956d]/10 text-[#c8956d]' :
-                  'bg-[#f4f3f0] text-[#666666]'
-                }`}>
-                  {item.type === 'application' && <Users className="w-4 h-4" />}
-                  {item.type === 'payment' && <DollarSign className="w-4 h-4" />}
-                  {item.type === 'interview' && <Calendar className="w-4 h-4" />}
-                  {item.type === 'profile' && <Briefcase className="w-4 h-4" />}
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    item.type === "application"
+                      ? "bg-[#4a90a4]/10 text-[#4a90a4]"
+                      : item.type === "payment"
+                      ? "bg-[#7ba05b]/10 text-[#7ba05b]"
+                      : item.type === "interview"
+                      ? "bg-[#c8956d]/10 text-[#c8956d]"
+                      : "bg-[#f4f3f0] text-[#666666]"
+                  }`}
+                >
+                  {item.type === "application" && <Users className="w-4 h-4" />}
+                  {item.type === "payment" && <DollarSign className="w-4 h-4" />}
+                  {item.type === "interview" && <Calendar className="w-4 h-4" />}
+                  {item.type === "profile" && <Briefcase className="w-4 h-4" />}
                 </div>
                 <div className="flex-1">
                   <div className="text-sm text-[#1a1a1a] mb-1">{item.title}</div>
@@ -355,6 +429,7 @@ const Dashboard = (): React.JSX.Element => {
     </div>
   );
 
+  // —— Render ——
   return (
     <div className="min-h-screen bg-[#f7f6f4] py-12">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -363,13 +438,15 @@ const Dashboard = (): React.JSX.Element => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-semibold text-[#1a1a1a] mb-2">
-                {userType === 'professional' ? 'Professional Dashboard' : 'Company Dashboard'}
+                {getUserTypeDisplayName(userType)} Dashboard
               </h1>
               <p className="text-[#666666]">
-                {userType === 'professional'
-                  ? 'Manage your projects and track your Nordic career journey'
-                  : 'Manage your job postings and find exceptional Nordic talent'
-                }
+                Welcome back, {user.first_name ?? user.username}!{" "}
+                {userType === "freelancer"
+                  ? "Manage your projects and track your Nordic career journey"
+                  : userType === "client"
+                  ? "Manage your job postings and find exceptional Nordic talent"
+                  : "Manage the platform and user activities"}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -392,22 +469,31 @@ const Dashboard = (): React.JSX.Element => {
 
           {/* User Type Indicator */}
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#f4f3f0] text-[#666666] text-sm font-medium">
-            {userType === 'professional' ? (
+            {userType === "freelancer" ? (
               <>
                 <User className="w-4 h-4 mr-2" />
                 Professional Account
               </>
-            ) : (
+            ) : userType === "client" ? (
               <>
                 <Building2 className="w-4 h-4 mr-2" />
                 Company Account
+              </>
+            ) : (
+              <>
+                <Settings className="w-4 h-4 mr-2" />
+                Administrator Account
               </>
             )}
           </div>
         </div>
 
         {/* Dashboard Content */}
-        {userType === 'professional' ? renderProfessionalDashboard() : renderCompanyDashboard()}
+        {userType === "freelancer"
+          ? renderProfessionalDashboard()
+          : userType === "client"
+          ? renderCompanyDashboard()
+          : renderProfessionalDashboard() /* fallback for admin */}
       </div>
     </div>
   );

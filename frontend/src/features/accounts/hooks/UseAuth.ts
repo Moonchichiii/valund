@@ -1,14 +1,15 @@
-﻿// src/features/accounts/hooks/useAuth.ts - Complete with all imports
-
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+﻿import { useMutation, type UseMutationResult, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import { authApi } from '../../../api/auth';
+import { authApi } from '@/api/auth';
 import type {
+  AuthResponse,
   GeographicAccess,
   LoginRequest,
+  PasswordChangeRequest,
   RegisterRequest,
+  SecurityLog,
   User,
+  UserSession,
 } from '../types/auth';
 
 interface AuthError {
@@ -23,6 +24,27 @@ interface AuthError {
   message?: string;
 }
 
+// Persistence helper
+const STORAGE_KEY = 'valunds-user-profile';
+
+const persistUser = (user: User | null): void => {
+  if (user) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+};
+
+const getPersistedUser = (): User | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+};
+
 const extractErrorMessage = (error: unknown): string => {
   if (!error || typeof error !== 'object') {
     return 'An unexpected error occurred';
@@ -30,14 +52,12 @@ const extractErrorMessage = (error: unknown): string => {
 
   const authError = error as AuthError;
 
-  // Handle validation errors
   if (authError.response?.data?.errors) {
     const firstErrorKey = Object.keys(authError.response.data.errors)[0];
     const firstError = authError.response.data.errors[firstErrorKey];
     return Array.isArray(firstError) ? firstError[0] : 'Validation error';
   }
 
-  // Handle API error messages
   return (
     authError.response?.data?.detail ??
     authError.response?.data?.message ??
@@ -46,30 +66,34 @@ const extractErrorMessage = (error: unknown): string => {
   );
 };
 
-export const useUser = (): UseQueryResult<User | null, unknown> =>
-  useQuery<User | null>({
+// Core user query with persistence
+export const useUser = (): UseQueryResult<User | null, Error> =>
+  useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async (): Promise<User | null> => {
       try {
-        return await authApi.getCurrentUser();
+        const user = await authApi.getCurrentUser();
+        persistUser(user);
+        return user;
       } catch (error: unknown) {
         const authError = error as AuthError;
         if (authError.response?.status === 401) {
-          return null; // User not authenticated
+          persistUser(null);
+          return null;
         }
         throw error;
       }
     },
     retry: (failureCount: number, error: unknown): boolean => {
       const authError = error as AuthError;
-      // Don't retry on auth errors
       if (authError.response?.status === 401 || authError.response?.status === 403) {
         return false;
       }
       return failureCount < 2;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    initialData: getPersistedUser,
   });
 
 export const useAuthStatus = (): {
@@ -80,107 +104,212 @@ export const useAuthStatus = (): {
 } => {
   const userQuery = useUser();
   return {
-    isAuthenticated: !!userQuery.data,
+    isAuthenticated: Boolean(userQuery.data),
     isLoading: userQuery.isLoading,
     user: userQuery.data,
     error: userQuery.error,
   };
 };
 
-export const useLogin = (): UseMutationResult<void, unknown, LoginRequest, unknown> => {
+// Enhanced login with user data caching + debug logs
+export const useLogin = (): UseMutationResult<AuthResponse, unknown, LoginRequest> => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: LoginRequest): Promise<void> => {
-      await authApi.login(payload);
+    mutationFn: async (credentials: LoginRequest): Promise<AuthResponse> => {
+      console.log('[Auth][Login] Attempting login', {
+        email: credentials.email,
+        timestamp: new Date().toISOString(),
+      });
+      try {
+        const result = await authApi.login(credentials);
+        console.log('[Auth][Login] API success', {
+          userId: result.user?.id,
+          email: result.user?.email,
+        });
+        return result;
+      } catch (err) {
+        console.error('[Auth][Login] API error', {
+          email: credentials.email,
+          error: err,
+        });
+        throw err;
+      }
     },
-    onSuccess: (): void => {
-      // Invalidate and refetch user data
-      void queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    onSuccess: (data): void => {
+      console.log('[Auth][Login] onSuccess - caching user', {
+        userId: data.user?.id,
+      });
+      queryClient.setQueryData(['auth', 'me'], data.user);
+      persistUser(data.user);
       toast.success('Welcome back!');
     },
     onError: (error: unknown): void => {
       const errorMessage = extractErrorMessage(error);
+      console.error('[Auth][Login] onError', {
+        message: errorMessage,
+        raw: error,
+      });
       toast.error(errorMessage);
     },
   });
 };
 
-export const useRegister = (): UseMutationResult<void, unknown, RegisterRequest, unknown> => {
+// Enhanced register with user data caching + debug logs
+export const useRegister = (): UseMutationResult<AuthResponse, unknown, RegisterRequest> => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: RegisterRequest): Promise<void> => {
-      await authApi.register(payload);
+    mutationFn: async (payload: RegisterRequest): Promise<AuthResponse> => {
+      console.log('[Auth][Register] Attempting registration', {
+        email: (payload as { email?: string }).email,
+        timestamp: new Date().toISOString(),
+      });
+      try {
+        const result = await authApi.register(payload);
+        console.log('[Auth][Register] API success', {
+          userId: result.user?.id,
+          email: result.user?.email,
+        });
+        return result;
+      } catch (err) {
+        console.error('[Auth][Register] API error', {
+          email: (payload as { email?: string }).email,
+          error: err,
+        });
+        throw err;
+      }
     },
-    onSuccess: (): void => {
-      void queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    onSuccess: (data): void => {
+      console.log('[Auth][Register] onSuccess - caching user', {
+        userId: data.user?.id,
+      });
+      queryClient.setQueryData(['auth', 'me'], data.user);
+      persistUser(data.user);
       toast.success('Welcome to Valunds!');
     },
     onError: (error: unknown): void => {
       const errorMessage = extractErrorMessage(error);
+      console.error('[Auth][Register] onError', {
+        message: errorMessage,
+        raw: error,
+      });
       toast.error(errorMessage);
     },
   });
 };
 
-export const useLogout = (): UseMutationResult<void, unknown, void, unknown> => {
+export const useLogout = (): UseMutationResult<void, unknown, void> => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (): Promise<void> => {
-      await authApi.logout();
-    },
+    mutationFn: authApi.logout,
     onSuccess: (): void => {
-      // Clear all auth-related queries
       queryClient.removeQueries({ queryKey: ['auth'] });
       queryClient.clear();
+      persistUser(null);
       toast.success('Signed out successfully');
     },
     onError: (error: unknown): void => {
-      // Even if logout fails on server, clear local state
       queryClient.removeQueries({ queryKey: ['auth'] });
       queryClient.clear();
+      persistUser(null);
       const errorMessage = extractErrorMessage(error);
       toast.error(`Logout warning: ${errorMessage}`);
     },
   });
 };
 
-export const useGeographicAccess = (): UseQueryResult<GeographicAccess, unknown> =>
-  useQuery<GeographicAccess>({
-    queryKey: ['auth', 'geographic-access'],
-    queryFn: async (): Promise<GeographicAccess> => {
-      try {
-        return await authApi.checkGeographicAccess();
-      } catch {
-        // Fallback for geographic check failures
-        return {
-          canUseBankID: false,
-          message: 'Geographic access check unavailable',
-        };
-      }
+// Profile update with cache sync
+export const useUpdateProfile = (): UseMutationResult<User, unknown, Partial<User>> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: authApi.updateProfile,
+    onSuccess: (updatedUser): void => {
+      queryClient.setQueryData(['auth', 'me'], updatedUser);
+      persistUser(updatedUser);
+      toast.success('Profile updated successfully');
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    onError: (error: unknown): void => {
+      const errorMessage = extractErrorMessage(error);
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// Password change
+export const useChangePassword = (): UseMutationResult<void, unknown, PasswordChangeRequest> =>
+  useMutation({
+    mutationFn: authApi.changePassword,
+    onSuccess: (): void => {
+      toast.success('Password changed successfully');
+    },
+    onError: (error: unknown): void => {
+      const errorMessage = extractErrorMessage(error);
+      toast.error(errorMessage);
+    },
+  });
+
+// Session management
+export const useUserSessions = (): UseQueryResult<UserSession[], Error> =>
+  useQuery({
+    queryKey: ['auth', 'sessions'],
+    queryFn: authApi.getUserSessions,
+    staleTime: 2 * 60 * 1000,
+    // Avoid calling useAuthStatus() (which calls useUser()) here.
+    // Use a cheap heuristic: enable if something is persisted.
+    enabled: !!getPersistedUser(),
+  });
+
+export const useTerminateSession = (): UseMutationResult<void, unknown, string> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: authApi.terminateSession,
+    onSuccess: (): void => {
+      void queryClient.invalidateQueries({ queryKey: ['auth', 'sessions'] });
+      toast.success('Session terminated');
+    },
+    onError: (error: unknown): void => {
+      const errorMessage = extractErrorMessage(error);
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// Security logs
+export const useSecurityLogs = (): UseQueryResult<SecurityLog[], Error> =>
+  useQuery({
+    queryKey: ['auth', 'security-logs'],
+    queryFn: authApi.getSecurityLogs,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!getPersistedUser(),
+  });
+
+// Geographic access
+export const useGeographicAccess = (): UseQueryResult<GeographicAccess, Error> =>
+  useQuery({
+    queryKey: ['auth', 'geographic-access'],
+    queryFn: authApi.checkGeographicAccess,
+    staleTime: 5 * 60 * 1000,
     retry: 1,
     refetchOnWindowFocus: false,
   });
 
-export const useBankIDAuth = (): UseMutationResult<User, unknown, void, unknown> => {
+// BankID authentication
+export const useBankIDAuth = (): UseMutationResult<User, unknown, void> => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (): Promise<User> => {
-      // Start BankID authentication
       const startResponse = await authApi.bankidStart();
       let attempts = 0;
-      const maxAttempts = 60; // 2 minutes max
-      const pollInterval = 2000; // 2 seconds
+      const maxAttempts = 60;
+      const pollInterval = 2000;
 
       while (attempts < maxAttempts) {
         attempts++;
-
-        // Wait before polling
         await new Promise((resolve) => setTimeout(resolve, pollInterval));
 
         try {
@@ -193,26 +322,15 @@ export const useBankIDAuth = (): UseMutationResult<User, unknown, void, unknown>
           if (statusResponse.status === 'failed') {
             throw new Error('BankID authentication failed');
           }
-
-          if (statusResponse.status === 'cancelled') {
-            throw new Error('BankID authentication was cancelled');
-          }
-
-          // Continue polling if status is 'pending'
         } catch (error: unknown) {
           const authError = error as AuthError;
-
-          // If it's a network error, continue polling
           if (!authError.response) {
             continue;
           }
-
-          // If it's an API error, throw it
           throw error;
         }
       }
 
-      // Timeout reached
       try {
         await authApi.bankidCancel(startResponse.order_ref);
       } catch {
@@ -221,7 +339,9 @@ export const useBankIDAuth = (): UseMutationResult<User, unknown, void, unknown>
 
       throw new Error('BankID authentication timed out');
     },
-    onSuccess: (): void => {
+    onSuccess: (user): void => {
+      queryClient.setQueryData(['auth', 'me'], user);
+      persistUser(user);
       void queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
       toast.success('Successfully authenticated with BankID');
     },
@@ -241,3 +361,7 @@ export const useBankIDAuth = (): UseMutationResult<User, unknown, void, unknown>
     },
   });
 };
+
+// Utility hook for password strength
+export const usePasswordStrength = (password: string): { score: number; feedback: string[] } =>
+  authApi.checkPasswordStrength(password);

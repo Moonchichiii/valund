@@ -17,7 +17,7 @@ const About = lazy(() => import('@/app/pages/About').then(module => ({ default: 
 const FindTalent = lazy(() => import('@/app/pages/FindTalent').then(module => ({ default: module.FindTalent })));
 const Professionals = lazy(() => import('@/app/pages/Professionals').then(module => ({ default: module.Professionals })));
 const Contact = lazy(() => import('@/app/pages/Contact').then(module => ({ default: module.Contact })));
-const Dashboard = lazy(() => import('@/app/outlet/Dashboard/Dashboard'));
+const Dashboard = lazy(() => import('@/app/pages/Dashboard'));
 
 // Loading fallback component
 const LoadingSpinner = (): ReactElement => (
@@ -116,7 +116,7 @@ const registerRoute = createRoute({
   component: RegisterPage
 });
 
-// Simplified dashboard route (no DashboardLayout)
+// Simplified dashboard route
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard',
