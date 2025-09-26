@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import (
 
 from .views import (
     ChangePasswordView,
+    CSRFTokenView,
     LoginView,
     LogoutView,
     MeView,
@@ -60,6 +61,7 @@ except Exception:
 app_name = "accounts"
 
 urlpatterns = [
+    path("csrf/", CSRFTokenView.as_view(), name="csrf_token"),
     path("login/", LoginView.as_view(), name="login"),
     path("register/", RegisterView.as_view(), name="register"),
     path("me/", MeView.as_view(), name="me"),

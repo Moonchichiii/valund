@@ -316,7 +316,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
     # include local dev + (optionally) prod domains
-    default="http://localhost:5173,http://127.0.0.1:5173,https://valunds.se,https://www.valunds.se",
+    default="http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://valunds.se,https://www.valunds.se",
     cast=Csv(),
 )
 CORS_ALLOW_CREDENTIALS = True
@@ -324,9 +324,16 @@ CORS_ALLOW_CREDENTIALS = True
 # CSRF trusted origins (safe in dev; used by Django when DEBUG=False too)
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
-     default="http://localhost:5173,http://127.0.0.1:5173,https://valunds.se,https://www.valunds.se",
+     default="http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://valunds.se,https://www.valunds.se",
     cast=Csv(),
 )
+
+# CSRF cookie settings for SPA integration
+CSRF_COOKIE_SECURE = not DEBUG  # Only send over HTTPS in production
+CSRF_COOKIE_HTTPONLY = False    # Allow JavaScript access for SPA
+CSRF_COOKIE_SAMESITE = 'Lax'    # Balance between security and functionality 
+CSRF_COOKIE_AGE = 3600          # 1 hour
+CSRF_USE_SESSIONS = True        # Use sessions for CSRF tokens
 
 # Session Security (safe now; auto-hardens in prod)
 SESSION_COOKIE_SECURE = not DEBUG
