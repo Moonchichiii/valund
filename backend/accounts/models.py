@@ -10,6 +10,8 @@ from django.core.cache import cache
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -311,12 +313,8 @@ class UserSkill(models.Model):
 
     def __str__(self):
         return f"{self.user.full_name} - {self.skill.name} ({self.get_proficiency_level_display()})"
-
-
 # ---------------- Convenience: auto-create profile ----------------
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
+@receiver(post_save, sender=User)
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance: User, created, **kwargs):

@@ -1,6 +1,6 @@
 ﻿import React, { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useRegister, usePasswordStrength } from '@/features/accounts/hooks/useAuth';
+import { usePasswordStrength, useRegister } from '@/features/accounts/hooks/useAuth';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/Card';

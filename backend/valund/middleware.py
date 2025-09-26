@@ -4,7 +4,6 @@ from django.middleware.csrf import get_token
 class EnsureCSRFCookieOnSafeMethodsMiddleware:
     """
     Guarantee a CSRF cookie on SAFE methods so SPAs have a token before the first POST.
-    Works for anonymous and authenticated requests.
     """
     def __init__(self, get_response):
         self.get_response = get_response

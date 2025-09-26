@@ -1,7 +1,9 @@
 """
 URL configuration for accounts app.
-- Removes double auth/ prefix since main urls.py already includes "api/auth/"
-- Clean endpoints that match frontend expectations
+
+Note:
+- Main project already mounts this app at "api/auth/", so paths here are relative to that.
+- Includes a CSRF seeding endpoint: GET /api/auth/csrf/
 """
 
 from django.urls import include, path
@@ -14,24 +16,26 @@ from rest_framework_simplejwt.views import (
 
 from .views import (
     ChangePasswordView,
+    CsrfView,
     LoginView,
     LogoutView,
     MeView,
+    RefreshFromCookieView,  # added
     RegisterView,
     UserSessionsView,
 )
 
-ADVANCED_URLS = []
-router = DefaultRouter()
+app_name = "accounts"
 
-# Optional: SecurityLogViewSet
+router = DefaultRouter()
+ADVANCED_URLS: list = []
+
 try:
     from .views import SecurityLogViewSet  # type: ignore
     router.register(r"security-logs", SecurityLogViewSet, basename="security-logs")
 except Exception:
     pass
 
-# Optional: Email verification
 try:
     from .views import (  # type: ignore
         EmailVerificationConfirmView,
@@ -44,7 +48,6 @@ try:
 except Exception:
     pass
 
-# Optional: Password reset
 try:
     from .views import (  # type: ignore
         PasswordResetConfirmView,
@@ -57,20 +60,20 @@ try:
 except Exception:
     pass
 
-app_name = "accounts"
-
 urlpatterns = [
+    path("csrf/", CsrfView.as_view(), name="csrf"),
+    path("refresh/", RefreshFromCookieView.as_view(), name="refresh"),
     path("login/", LoginView.as_view(), name="login"),
     path("register/", RegisterView.as_view(), name="register"),
-    path("me/", MeView.as_view(), name="me"),
     path("logout/", LogoutView.as_view(), name="logout"),
+    path("me/", MeView.as_view(), name="me"),
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
     path("sessions/", UserSessionsView.as_view(), name="sessions"),
     path("sessions/<int:session_id>/", UserSessionsView.as_view(), name="session-delete"),
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
-    ]
+]
 
 urlpatterns += ADVANCED_URLS
 urlpatterns += [path("", include(router.urls))]

@@ -1,19 +1,9 @@
-// main.tsx
-import { StrictMode, useEffect } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
-import { authApi } from '@/api/auth';
-
-// --- Prime CSRF once on app mount (safe 204 no-op if already set) ---
-function CsrfBootstrap() {
-  useEffect(() => {
-    void authApi.getCsrfToken();
-  }, []);
-  return null;
-}
 
 interface ApiError {
   response?: {
@@ -34,13 +24,16 @@ const queryClient = new QueryClient({
       retry: (failureCount: number, error: unknown): boolean => {
         const apiError = error as ApiError;
 
-        if (apiError.response && apiError.response.status >= 400 &&
+        // Don't retry 4xx client errors except for timeout/rate limiting
+        if (apiError.response?.status &&
+            apiError.response.status >= 400 &&
             apiError.response.status < 500) {
-          return apiError.response.status === 408 ||
-                 apiError.response.status === 429 ?
-                 failureCount < 2 : false;
+          return apiError.response.status === 408 || apiError.response.status === 429
+            ? failureCount < 2
+            : false;
         }
 
+        // Retry network/server errors up to 3 times
         return failureCount < 3;
       },
       refetchOnWindowFocus: false,
@@ -61,11 +54,7 @@ const root = createRoot(container);
 root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      {/* Ensure CSRF cookie exists before any mutations */}
-      <CsrfBootstrap />
-
       <App />
-
       <Toaster
         position="top-right"
         toastOptions={{
@@ -78,7 +67,6 @@ root.render(
           }
         }}
       />
-
       {import.meta.env.DEV && (
         <ReactQueryDevtools
           initialIsOpen={false}

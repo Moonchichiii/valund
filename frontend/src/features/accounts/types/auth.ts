@@ -1,7 +1,5 @@
-﻿// src/features/accounts/types/auth.ts - Enhanced with all backend fields
-
-export interface User {
-  id: number;
+﻿export interface User {
+  id: number; // keep number unless your backend uses UUIDs
   email: string;
   username?: string;
   first_name?: string;
@@ -33,6 +31,7 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
+  password_confirm?: string;
   first_name?: string;
   last_name?: string;
   username?: string;
@@ -55,7 +54,7 @@ export interface GeographicAccess {
   message?: string;
 }
 
-// BankID interfaces (from identity app)
+// BankID (from identity app)
 export interface BankIDStartResponse {
   order_ref: string;
   qr_start_token?: string;
@@ -79,12 +78,12 @@ export interface PasswordChangeRequest {
 }
 
 export interface UserSession {
-  id: string;
+  id: number;                // <-- number (Django pk)
   ip_address: string;
   location: string;
   created_at: string;
   last_activity: string;
-  is_current_session: boolean;
+  is_current: boolean;       // <-- rename to match backend
   device_info?: {
     browser?: string;
     os?: string;
