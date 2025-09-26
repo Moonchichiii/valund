@@ -132,7 +132,7 @@ include-package-data = true
 [tool.black]
 line-length = 88
 target-version = ['py311']
-include = '\.pyi?
+include = '\.pyi?$'
 extend-exclude = '''
 /(
   \.git
