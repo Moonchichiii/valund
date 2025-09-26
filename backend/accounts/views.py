@@ -430,4 +430,10 @@ class CSRFTokenView(APIView):
 	def get(self, request, *args, **kwargs):
 		from django.middleware.csrf import get_token
 		token = get_token(request)
-		return Response({"csrftoken": token}, status=status.HTTP_200_OK)
+		
+		response = Response({"csrftoken": token}, status=status.HTTP_200_OK)
+		# Ensure we don't cache this response
+		response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+		response['Pragma'] = 'no-cache' 
+		response['Expires'] = '0'
+		return response
