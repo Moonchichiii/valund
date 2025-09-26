@@ -418,3 +418,22 @@ class UserSessionsView(APIView):
 			)
 
 		return Response({"detail": "Session terminated"}, status=status.HTTP_200_OK)
+
+
+class CSRFTokenView(APIView):
+	"""
+	Public endpoint to get/set CSRF token for SPA authentication.
+	This ensures the CSRF cookie is set before any POST/PUT/DELETE requests.
+	"""
+	permission_classes = [permissions.AllowAny]
+	
+	def get(self, request, *args, **kwargs):
+		from django.middleware.csrf import get_token
+		token = get_token(request)
+		
+		response = Response({"csrftoken": token}, status=status.HTTP_200_OK)
+		# Ensure we don't cache this response
+		response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+		response['Pragma'] = 'no-cache' 
+		response['Expires'] = '0'
+		return response

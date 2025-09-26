@@ -36,7 +36,7 @@ authClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 const primeCsrf = async (): Promise<void> => {
   try {
-    await authClient.get("me/");
+    await authClient.get("csrf/");
   } catch {
     return;
   }
